@@ -6,7 +6,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#080f20">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>NEXUS NEWS 8.0</title>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>NEXUS NEWS 8.1</title>
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23080f20'/%3E%3Ccircle cx='50' cy='50' r='34' fill='none' stroke='%2340dfdd' stroke-width='5'/%3E%3Cpath d='M17 50h66M50 16c-24 20-24 48 0 68M50 16c24 20 24 48 0 68' fill='none' stroke='%2340dfdd' stroke-width='3'/%3E%3C/svg%3E">
 
 <style>
 *{box-sizing:border-box}
@@ -15,6 +18,7 @@
  --deep:#091529;--text:#edf4ff;--mute:#91a4c0;
  --cyan:#40dfdd;--blue:#147ee9;--fs:25px;
 }
+html{scroll-behavior:smooth}
 body{
  margin:0 auto;padding:12px;
  padding-top:max(12px,env(safe-area-inset-top));
@@ -26,9 +30,11 @@ body{
  background:var(--panel);border:1px solid var(--line);
  border-radius:16px;padding:16px;margin-bottom:12px;
 }
-.logo{font-size:34px;font-weight:900;color:var(--cyan);letter-spacing:2px}
-.sub{font-size:14px;color:var(--mute);margin-top:5px}
-.status{font-size:16px;color:#39d99b;margin-top:10px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-icon{width:65px;height:65px;flex-shrink:0}
+.logo{font-size:32px;font-weight:900;color:var(--cyan);letter-spacing:1px}
+.sub{font-size:13px;color:var(--mute);margin-top:4px}
+.status{font-size:15px;color:#39d99b;margin-top:10px}
 .offline{color:#ff7183}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
 .stat{background:var(--deep);padding:10px 4px;text-align:center;border-radius:10px}
@@ -55,29 +61,23 @@ button:disabled{opacity:.5}
 #log{
  display:none;background:#102e48;border:1px solid #28618b;
  padding:12px;border-radius:10px;margin-bottom:12px;
- font-size:15px;line-height:1.8;white-space:pre-wrap;
+ font-size:14px;line-height:1.8;white-space:pre-wrap;
  overflow-wrap:anywhere;
 }
 .card{overflow:hidden}
-.card.read{border-color:#27364b}
+.card.read{opacity:.78}
 .card.google{border-left:5px solid var(--cyan)}
-.meta{
- display:flex;justify-content:space-between;gap:8px;
- color:var(--mute);font-size:14px;flex-wrap:wrap;
-}
+.meta{display:flex;justify-content:space-between;gap:8px;color:var(--mute);font-size:14px;flex-wrap:wrap}
 .tag{color:var(--cyan);font-weight:bold}
-.google-tag{
- display:inline-block;background:#123d50;color:#63e9ed;
- padding:3px 9px;border-radius:6px;font-size:13px;
-}
+.google-label{color:#40dfdd}
+.finance-label{color:#ffcf65}
 .card h3{
- font-size:1.15em;line-height:1.5;
- margin:12px 0;color:#fff;overflow-wrap:anywhere;
- cursor:pointer;
+ font-size:1.17em;line-height:1.55;
+ margin:12px 0;color:#fff;overflow-wrap:anywhere;cursor:pointer;
 }
-.card h3::after{content:' ▴';color:var(--cyan);font-size:.75em}
-.card:not(.open) h3::after{content:' ▾'}
-.body{display:none;margin-top:8px}
+.card h3::after{content:' ▾';color:var(--cyan);font-size:.75em}
+.card.open h3::after{content:' ▴'}
+.body{display:none;margin-top:10px}
 .card.open .body{display:block}
 .news-image{
  display:block;width:100%;max-height:440px;
@@ -85,36 +85,61 @@ button:disabled{opacity:.5}
  margin:12px 0;background:var(--deep);cursor:zoom-in;
 }
 .desc{
- color:#e0e9f5;font-size:1.05em;
- line-height:1.95;white-space:pre-wrap;
- overflow-wrap:anywhere;
+ color:#e0e9f5;font-size:1.05em;line-height:1.95;
+ white-space:pre-wrap;overflow-wrap:anywhere;
 }
 .article-status{color:#70baff;font-size:14px;margin-top:12px}
 .actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-.actions button{
- font-size:15px;padding:11px 13px;
- border-radius:10px;background:#203b5b;
-}
+.actions button{font-size:15px;padding:11px 13px;background:#203b5b}
 .actions .star{background:#463817;color:#ffcf65}
-.empty{
- text-align:center;padding:36px 12px;
- color:var(--mute);background:var(--panel);border-radius:12px;
-}
+.empty{text-align:center;padding:36px 12px;color:var(--mute);background:var(--panel);border-radius:12px}
 .small{font-size:14px;color:var(--mute);line-height:1.8;margin-top:10px}
 .footer{text-align:center;color:#627a9a;font-size:13px;padding:18px}
+
+/* 左側固定回頂浮標 */
+#topFloat{
+ position:fixed;
+ left:7px;
+ top:52%;
+ transform:translateY(-50%);
+ z-index:9000;
+ width:55px;
+ height:67px;
+ border-radius:30px;
+ padding:5px 2px;
+ display:flex;
+ flex-direction:column;
+ justify-content:center;
+ align-items:center;
+ gap:1px;
+ background:linear-gradient(145deg,#087ef5,#073e80);
+ border:2px solid #40dfdd;
+ box-shadow:0 0 12px #147ee9,0 0 28px #147ee966;
+ color:white;
+ transition:opacity .25s,transform .25s;
+}
+#topFloat .arrow{font-size:30px;line-height:32px}
+#topFloat small{font-size:11px}
+#topFloat.hidden{
+ opacity:0;
+ pointer-events:none;
+ transform:translate(-15px,-50%);
+}
+
 #photoModal{
  display:none;position:fixed;inset:0;z-index:9999;
  background:#000e;align-items:center;justify-content:center;padding:12px;
 }
 #photoModal img{max-width:100%;max-height:85vh;object-fit:contain;border-radius:8px}
 #photoModal button{position:absolute;right:12px;top:max(16px,env(safe-area-inset-top))}
-.google-title{color:var(--cyan)}
+
 @media(max-width:480px){
  body{padding:9px;padding-top:max(9px,env(safe-area-inset-top))}
  .header,.panel,.card{padding:13px}
- .logo{font-size:29px}
- .controls{gap:7px}
+ .logo{font-size:27px}
+ .brand-icon{width:55px;height:55px}
  .desc{line-height:1.9}
+ #topFloat{left:5px;width:49px;height:62px}
 }
 </style>
 </head>
@@ -122,8 +147,33 @@ button:disabled{opacity:.5}
 <body>
 
 <div class="header">
- <div class="logo">✦ NEXUS NEWS</div>
- <div class="sub">GOOGLE FIRST · FULL ARTICLE · PHOTO READER 8.0</div>
+ <div class="brand">
+  <!-- NEXUS 專屬地球新聞圖示 -->
+  <svg class="brand-icon" viewBox="0 0 100 100">
+   <defs>
+    <linearGradient id="earth" x1="0" y1="0" x2="1" y2="1">
+     <stop offset="0" stop-color="#40dfdd"/>
+     <stop offset="1" stop-color="#147ee9"/>
+    </linearGradient>
+    <filter id="glow">
+     <feGaussianBlur stdDeviation="3" result="b"/>
+     <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+   </defs>
+   <circle cx="50" cy="50" r="34" fill="#091529" stroke="url(#earth)" stroke-width="3" filter="url(#glow)"/>
+   <ellipse cx="50" cy="50" rx="15" ry="34" fill="none" stroke="#40dfdd" stroke-width="2"/>
+   <ellipse cx="50" cy="50" rx="34" ry="13" fill="none" stroke="#40dfdd" stroke-width="2"/>
+   <path d="M17 50H83M50 16V84" stroke="#40dfdd" stroke-width="1.5" opacity=".7"/>
+   <path d="M26 29L74 71M74 29L26 71" stroke="#147ee9" stroke-width="1" opacity=".5"/>
+   <circle cx="50" cy="50" r="4" fill="#fff"/>
+   <path d="M67 12L71 20L80 23L71 26L67 34L63 26L54 23L63 20Z" fill="#40dfdd"/>
+  </svg>
+  <div>
+   <div class="logo">✦ NEXUS NEWS</div>
+   <div class="sub">GOOGLE FIRST · FINANCE FIRST · 8.1</div>
+  </div>
+ </div>
+
  <div id="status" class="status">● 檢查網路中</div>
 
  <div class="stats">
@@ -139,8 +189,9 @@ button:disabled{opacity:.5}
  <div class="controls">
   <select id="limit">
    <option value="100">保存100則</option>
-   <option value="200" selected>保存200則</option>
+   <option value="200">保存200則</option>
    <option value="500">保存500則</option>
+   <option value="all">保存全部新聞</option>
   </select>
 
   <select id="sort">
@@ -150,7 +201,7 @@ button:disabled{opacity:.5}
 
   <select id="size">
    <option value="22">字體：大</option>
-   <option value="25" selected>字體：特大</option>
+   <option value="25">字體：特大</option>
    <option value="29">字體：超大</option>
    <option value="34">字體：最大</option>
   </select>
@@ -170,8 +221,8 @@ button:disabled{opacity:.5}
  </div>
 
  <div class="small">
-  Google 新聞優先顯示。新聞內文自動展開，不必逐篇開啟原文。
-  照片及全文儲存在本機，支援離線閱讀。
+  Google 繁體財經優先，所有新聞可一次顯示。
+  收藏新聞不會自動刪除，支援本機保存及離線閱讀。
  </div>
 </div>
 
@@ -183,15 +234,18 @@ button:disabled{opacity:.5}
  <div class="tabs" id="tabs"></div>
 </div>
 
-<div id="news">
- <div class="empty">正在載入新聞...</div>
-</div>
+<div id="news"><div class="empty">正在載入新聞...</div></div>
 
 <div id="more" style="display:none">
  <button class="primary" id="moreBtn">載入更多</button>
 </div>
 
-<div class="footer">NEXUS NEWS CENTER 8.0 · GOOGLE FIRST</div>
+<div class="footer">✦ NEXUS NEWS CENTER 8.1 ✦</div>
+
+<button id="topFloat" aria-label="回到最上面">
+ <span class="arrow">↑</span>
+ <small>回頂部</small>
+</button>
 
 <div id="photoModal">
  <button id="closePhoto">✕ 關閉</button>
@@ -204,28 +258,25 @@ button:disabled{opacity:.5}
 const DB="RobustChineseNewsDB";
 const STORE="articles";
 const FULL_LIMIT=40;
-const PAGE=12;
+const PAGE=30;
 const SETTINGS="nexusNewsSettings";
 
 let db,articles=[],filter="all";
-let busy=false,enriching=false,shown=PAGE;
-let autoTimer=null,renderTimer=null,openLink="";
+let busy=false,enriching=false;
+let shown=PAGE,autoTimer=null,renderTimer=null;
 const $=id=>document.getElementById(id);
 
-/* =================================
-   1. 新聞來源：Google 排第一
-================================= */
+/* Google 新聞來源：繁體財經最優先 */
 
 const SOURCES=[
+ {name:"Google 繁體財經",type:"tw",priority:0,
+ url:"https://news.google.com/rss/search?q=%E8%B2%A1%E7%B6%93+OR+%E8%82%A1%E5%B8%82+OR+%E5%8F%B0%E8%82%A1+OR+%E7%BE%8E%E8%82%A1&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"},
 
- {name:"Google 繁體新聞",type:"tw",priority:0,
+ {name:"Google 繁體新聞",type:"tw",priority:1,
  url:"https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant"},
 
- {name:"Google 國際",type:"tw",priority:1,
+ {name:"Google 國際",type:"tw",priority:2,
  url:"https://news.google.com/rss/headlines/section/topic/WORLD?hl=zh-TW&gl=TW&ceid=TW:zh-Hant"},
-
- {name:"Google 財經",type:"tw",priority:2,
- url:"https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=zh-TW&gl=TW&ceid=TW:zh-Hant"},
 
  {name:"Google 科技",type:"tw",priority:3,
  url:"https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=zh-TW&gl=TW&ceid=TW:zh-Hant"},
@@ -239,7 +290,7 @@ const SOURCES=[
  {name:"Google 體育",type:"tw",priority:6,
  url:"https://news.google.com/rss/headlines/section/topic/SPORTS?hl=zh-TW&gl=TW&ceid=TW:zh-Hant"},
 
- {name:"Google 簡體新聞",type:"cn",priority:7,
+ {name:"Google 簡體新聞",type:"cn",priority:10,
  url:"https://news.google.com/rss?hl=zh-CN&gl=CN&ceid=CN:zh-Hans"},
 
  {name:"自由時報",type:"tw",priority:20,
@@ -253,12 +304,9 @@ const SOURCES=[
 
  {name:"中時新聞網",type:"tw",priority:23,
  url:"https://www.chinatimes.com/rss/realtimenews.xml"}
-
 ];
 
-/* =================================
-   2. 多工控制
-================================= */
+/* 多工 */
 
 async function mapLimit(items,n,fn){
  const out=new Array(items.length);
@@ -277,9 +325,7 @@ function log(s){
  $("log").textContent=s;
 }
 
-/* =================================
-   3. 分類
-================================= */
+/* 分類 */
 
 const TABS=[
  ["all","全部"],
@@ -292,7 +338,6 @@ const TABS=[
 TABS.forEach(([k,t],i)=>{
  const b=document.createElement("button");
  b.className="tab"+(i?"":" active");
- b.dataset.filter=k;
  b.textContent=t;
  b.onclick=()=>{
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
@@ -304,9 +349,7 @@ TABS.forEach(([k,t],i)=>{
  $("tabs").appendChild(b);
 });
 
-/* =================================
-   4. 設定
-================================= */
+/* 設定 */
 
 function loadSettings(){
  let s={};
@@ -316,7 +359,6 @@ function loadSettings(){
  $("sort").value=s.sort||"new";
  $("size").value=s.size||"25";
  $("auto").value=s.auto||"0";
-
  applySettings();
 }
 
@@ -330,12 +372,9 @@ function applySettings(){
   }));
  }catch(e){}
 
- document.documentElement.style.setProperty(
-  "--fs",$("size").value+"px"
- );
+ document.documentElement.style.setProperty("--fs",$("size").value+"px");
 
  clearInterval(autoTimer);
-
  const m=Number($("auto").value);
 
  if(m){
@@ -345,9 +384,7 @@ function applySettings(){
  }
 }
 
-/* =================================
-   5. IndexedDB
-================================= */
+/* 資料庫 */
 
 function dbInit(){
  return new Promise((res,rej)=>{
@@ -360,20 +397,14 @@ function dbInit(){
    }
   };
 
-  r.onsuccess=e=>{
-   db=e.target.result;
-   res();
-  };
-
+  r.onsuccess=e=>{db=e.target.result;res()};
   r.onerror=()=>rej(r.error);
  });
 }
 
 function getAll(){
  return new Promise((res,rej)=>{
-  const r=db.transaction(STORE,"readonly")
-   .objectStore(STORE).getAll();
-
+  const r=db.transaction(STORE,"readonly").objectStore(STORE).getAll();
   r.onsuccess=()=>res(r.result||[]);
   r.onerror=()=>rej(r.error);
  });
@@ -383,11 +414,7 @@ function putMany(list){
  return new Promise((res,rej)=>{
   const tx=db.transaction(STORE,"readwrite");
   const s=tx.objectStore(STORE);
-
-  list.forEach(a=>{
-   if(a.link)s.put(a);
-  });
-
+  list.forEach(a=>{if(a.link)s.put(a)});
   tx.oncomplete=res;
   tx.onerror=tx.onabort=()=>rej(tx.error);
  });
@@ -397,17 +424,13 @@ function removeMany(links){
  return new Promise((res,rej)=>{
   const tx=db.transaction(STORE,"readwrite");
   const s=tx.objectStore(STORE);
-
   links.forEach(l=>s.delete(l));
-
   tx.oncomplete=res;
   tx.onerror=tx.onabort=()=>rej(tx.error);
  });
 }
 
-/* =================================
-   6. URL 及文字處理
-================================= */
+/* 文字及圖片 */
 
 function validURL(url){
  if(!url)return "";
@@ -427,18 +450,11 @@ function stripURL(t){
 
 function clean(html){
  if(!html)return "";
-
  try{
   const d=new DOMParser().parseFromString(html,"text/html");
-
-  d.querySelectorAll(
-   "script,style,iframe,object,form,svg,button,noscript"
-  ).forEach(x=>x.remove());
-
-  return stripURL(
-   (d.body.textContent||"").replace(/\s+/g," ")
-  ).slice(0,25000);
-
+  d.querySelectorAll("script,style,iframe,object,form,svg,button,noscript")
+   .forEach(x=>x.remove());
+  return stripURL((d.body.textContent||"").replace(/\s+/g," ")).slice(0,25000);
  }catch(e){
   return String(html).replace(/<[^>]*>/g," ").trim().slice(0,25000);
  }
@@ -446,26 +462,20 @@ function clean(html){
 
 function extractImages(html){
  if(!html)return [];
-
  const found=[];
 
  try{
   const d=new DOMParser().parseFromString(html,"text/html");
 
   d.querySelectorAll("img").forEach(img=>{
-   [
-    "src","data-src","data-original",
-    "data-lazy-src","data-original-src",
-    "data-url"
-   ].forEach(k=>{
+   ["src","data-src","data-original","data-lazy-src","data-original-src","data-url"].forEach(k=>{
     const u=validURL(img.getAttribute(k));
     if(u&&!found.includes(u))found.push(u);
    });
 
-   const srcset=img.getAttribute("srcset");
-
-   if(srcset){
-    const u=validURL(srcset.split(",")[0].trim().split(/\s+/)[0]);
+   const ss=img.getAttribute("srcset");
+   if(ss){
+    const u=validURL(ss.split(",")[0].trim().split(/\s+/)[0]);
     if(u&&!found.includes(u))found.push(u);
    }
   });
@@ -475,7 +485,6 @@ function extractImages(html){
     const u=validURL(m.content);
     if(u&&!found.includes(u))found.push(u);
    });
-
  }catch(e){}
 
  return found;
@@ -495,9 +504,7 @@ function allLocal(node,name){
   .filter(x=>x.localName===name||x.nodeName.endsWith(":"+name));
 }
 
-/* =================================
-   7. 新聞資料建立
-================================= */
+/* 建立新聞 */
 
 function makeArticle(title,link,date,description,source,image,images=[]){
  if(!title||!link)return null;
@@ -508,33 +515,24 @@ function makeArticle(title,link,date,description,source,image,images=[]){
  let time=date?new Date(date).getTime():Date.now();
  if(!Number.isFinite(time))time=Date.now();
 
- const allImages=[image,...images].map(validURL).filter(Boolean);
+ const imgs=[image,...images].map(validURL).filter(Boolean);
 
  return {
-  title:String(title).trim(),
-  link,
-  pubDate:time,
+  title:String(title).trim(),link,pubDate:time,
   desc:clean(description)||"目前沒有提供新聞摘要。",
-  image:allImages[0]||"",
-  images:[...new Set(allImages)].slice(0,8),
-  source:source.name,
-  category:source.type,
+  image:imgs[0]||"",
+  images:[...new Set(imgs)].slice(0,8),
+  source:source.name,category:source.type,
   priority:source.priority,
-  favorite:false,
-  read:false,
-  full:false,
-  failed:0,
-  fullStatus:"等待擷取全文"
+  favorite:false,read:false,full:false,
+  failed:0,fullStatus:"等待擷取"
  };
 }
 
-/* =================================
-   8. RSS XML 解析
-================================= */
+/* RSS XML */
 
 function parseXML(xml,source){
  const doc=new DOMParser().parseFromString(xml,"application/xml");
-
  if(doc.querySelector("parsererror"))throw Error("XML格式錯誤");
 
  const nodes=[
@@ -544,40 +542,29 @@ function parseXML(xml,source){
 
  return nodes.map(n=>{
   const title=getLocal(n,"title");
-
   let link=getLocal(n,"link");
 
   if(!link){
    const l=allLocal(n,"link").find(x=>
     !x.getAttribute("rel")||x.getAttribute("rel")==="alternate"
    );
-
    link=l?.getAttribute("href")||"";
   }
 
-  const date=
-   getLocal(n,"pubDate")||
-   getLocal(n,"published")||
-   getLocal(n,"updated");
+  const date=getLocal(n,"pubDate")||
+   getLocal(n,"published")||getLocal(n,"updated");
 
-  const desc=
-   getLocal(n,"description")||
-   getLocal(n,"summary")||
-   getLocal(n,"encoded")||
+  const desc=getLocal(n,"description")||
+   getLocal(n,"summary")||getLocal(n,"encoded")||
    getLocal(n,"content");
 
   const images=[];
 
-  [
-   "enclosure","content","thumbnail","image"
-  ].forEach(t=>{
+  ["enclosure","content","thumbnail","image"].forEach(t=>{
    allLocal(n,t).forEach(el=>{
     const u=validURL(
-     el.getAttribute("url")||
-     el.getAttribute("href")||
-     el.textContent
+     el.getAttribute("url")||el.getAttribute("href")||el.textContent
     );
-
     if(u&&!images.includes(u))images.push(u);
    });
   });
@@ -586,32 +573,20 @@ function parseXML(xml,source){
    if(!images.includes(u))images.push(u);
   });
 
-  return makeArticle(
-   title,link,date,desc,source,images[0]||"",images
-  );
-
+  return makeArticle(title,link,date,desc,source,images[0]||"",images);
  }).filter(Boolean);
 }
 
-/* =================================
-   9. 網路請求
-================================= */
+/* 網路 */
 
 async function request(url,headers={},timeout=25000){
  const c=new AbortController();
  const t=setTimeout(()=>c.abort(),timeout);
 
  try{
-  const r=await fetch(url,{
-   signal:c.signal,
-   cache:"no-store",
-   headers
-  });
-
+  const r=await fetch(url,{signal:c.signal,cache:"no-store",headers});
   if(!r.ok)throw Error("HTTP "+r.status);
-
   return await r.text();
-
  }catch(e){
   throw Error(e.name==="AbortError"?"逾時":e.message);
  }finally{
@@ -619,14 +594,11 @@ async function request(url,headers={},timeout=25000){
  }
 }
 
-/* =================================
-   10. RSS 多重備援
-================================= */
+/* RSS 備援 */
 
 async function viaJSON(source){
  const data=JSON.parse(await request(
-  "https://api.rss2json.com/v1/api.json?rss_url="+
-  encodeURIComponent(source.url)
+  "https://api.rss2json.com/v1/api.json?rss_url="+encodeURIComponent(source.url)
  ));
 
  if(data.status!=="ok"||!Array.isArray(data.items)){
@@ -635,56 +607,34 @@ async function viaJSON(source){
 
  return data.items.map(x=>{
   const html=x.content||x.description||"";
-
-  const images=[
-   x.thumbnail,
-   x.enclosure?.link,
-   x.enclosure?.url,
-   x.image,
+  const imgs=[
+   x.thumbnail,x.enclosure?.link,x.enclosure?.url,x.image,
    ...extractImages(html)
   ].map(validURL).filter(Boolean);
 
-  return makeArticle(
-   x.title,x.link,x.pubDate,html,
-   source,images[0]||"",images
-  );
+  return makeArticle(x.title,x.link,x.pubDate,html,source,imgs[0]||"",imgs);
  }).filter(Boolean);
 }
 
 async function viaProxy(source){
- const xml=await request(
-  "https://api.allorigins.win/raw?url="+encodeURIComponent(source.url)
- );
-
+ const xml=await request("https://api.allorigins.win/raw?url="+encodeURIComponent(source.url));
  if(!xml.includes("<")||xml.length<100)throw Error("沒有有效XML");
-
  return parseXML(xml,source);
 }
 
 async function viaProxy2(source){
- const xml=await request(
-  "https://corsproxy.io/?"+encodeURIComponent(source.url)
- );
-
+ const xml=await request("https://corsproxy.io/?"+encodeURIComponent(source.url));
  if(!xml.includes("<")||xml.length<100)throw Error("沒有有效XML");
-
  return parseXML(xml,source);
 }
 
 function proxyFn(label,mk,json){
  const f=async source=>{
   let xml=await request(mk(encodeURIComponent(source.url)));
-
-  if(json){
-   const d=JSON.parse(xml);
-   xml=d.contents||"";
-  }
-
+  if(json)xml=JSON.parse(xml).contents||"";
   if(!xml.includes("<")||xml.length<100)throw Error("沒有有效XML");
-
   return parseXML(xml,source);
  };
-
  f.label=label;
  return f;
 }
@@ -694,66 +644,47 @@ viaProxy.label="allorigins";
 viaProxy2.label="corsproxy";
 
 const EXTRA=[
- proxyFn("allorigins-get",
-  u=>"https://api.allorigins.win/get?url="+u,true),
-
- proxyFn("codetabs",
-  u=>"https://api.codetabs.com/v1/proxy?quest="+u),
-
- proxyFn("thingproxy",
-  u=>"https://thingproxy.freeboard.io/fetch/"+decodeURIComponent(u))
+ proxyFn("allorigins-get",u=>"https://api.allorigins.win/get?url="+u,true),
+ proxyFn("codetabs",u=>"https://api.codetabs.com/v1/proxy?quest="+u),
+ proxyFn("thingproxy",u=>"https://thingproxy.freeboard.io/fetch/"+decodeURIComponent(u))
 ];
 
 async function fetchSource(source){
  const errors=[];
-
  for(const fn of [viaJSON,viaProxy,viaProxy2,...EXTRA]){
   try{
    const list=await fn(source);
-
    if(list.length)return {ok:true,list};
-
    errors.push(fn.label+":沒有新聞");
-
   }catch(e){
-   errors.push(fn.label+":"+(e.message||"失敗"));
+   errors.push(fn.label+":"+e.message);
   }
  }
-
- return {
-  ok:false,
-  error:"\n   "+errors.join("\n   ")
- };
+ return {ok:false,error:"\n   "+errors.join("\n   ")};
 }
 
-/* =================================
-   11. Jina 全文擷取及照片
-================================= */
+/* Jina 全文 */
 
 function extractMarkdownImages(text){
  const images=[];
  const re=/!\[[^\]]*\]\((https?:\/\/[^)\s]+)(?:\s+"[^"]*")?\)/gi;
-
  let m;
-
  while((m=re.exec(text))!==null){
   const u=validURL(m[1]);
-
   if(u&&!images.includes(u))images.push(u);
  }
-
  return images;
 }
 
 function cleanReaderText(text){
  return stripURL(
   String(text||"")
-   .replace(/^(Title|URL Source|Published Time|Markdown Content):.*$/gim,"")
-   .replace(/!\[([^\]]*)\]\([^)]+\)/g,"")
-   .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,"$1")
-   .replace(/^#{1,6}\s*/gm,"")
-   .replace(/^\s*[-*_]{3,}\s*$/gm,"")
-   .replace(/\n{3,}/g,"\n\n")
+  .replace(/^(Title|URL Source|Published Time|Markdown Content):.*$/gim,"")
+  .replace(/!\[([^\]]*)\]\([^)]+\)/g,"")
+  .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,"$1")
+  .replace(/^#{1,6}\s*/gm,"")
+  .replace(/^\s*[-*_]{3,}\s*$/gm,"")
+  .replace(/\n{3,}/g,"\n\n")
  ).slice(0,25000);
 }
 
@@ -765,34 +696,25 @@ async function readFullArticle(a){
    "X-Respond-With":"markdown",
    "X-Retain-Images":"all",
    "X-Timeout":"25"
-  },
-  35000
+  },35000
  );
 
  if(!text||text.length<150)throw Error("擷取內容太短");
 
  const content=cleanReaderText(text);
-
  if(content.length<150)throw Error("沒有取得有效內文");
 
  const images=extractMarkdownImages(text).filter(u=>
   !/logo|icon|avatar|sprite|pixel/i.test(u)
  );
 
- return {
-  desc:content,
-  image:images[0]||a.image||"",
-  images
- };
+ return {desc:content,image:images[0]||a.image,images};
 }
 
-/* =================================
-   12. 全文自動擷取
-================================= */
+/* 全文 */
 
 function scheduleRender(){
  if(renderTimer)return;
-
  renderTimer=setTimeout(()=>{
   renderTimer=null;
   render();
@@ -812,7 +734,7 @@ async function enrichArticles(list,force=false){
 
  let ok=0,fail=0,done=0,idx=0;
 
- log("正在擷取新聞全文及照片\n準備處理 "+targets.length+" 則新聞...");
+ log("正在擷取 Google 優先新聞全文及照片...\n準備處理 "+targets.length+" 則");
 
  async function worker(){
   while(idx<targets.length){
@@ -820,7 +742,6 @@ async function enrichArticles(list,force=false){
 
    try{
     const r=await readFullArticle(a);
-
     a.desc=r.desc;
     a.full=true;
     a.failed=0;
@@ -828,58 +749,42 @@ async function enrichArticles(list,force=false){
 
     if(r.image)a.image=r.image;
 
-    if(r.images.length){
-     a.images=[...new Set([
-      ...(a.images||[]),
-      ...r.images
-     ])].slice(0,8);
-    }
+    a.images=[...new Set([
+     ...(a.images||[]),...r.images
+    ])].slice(0,8);
 
     ok++;
-
    }catch(e){
     a.failed=(a.failed||0)+1;
-    a.fullStatus="未能取得全文，保留RSS摘要："+e.message;
+    a.fullStatus="未取得全文，保留RSS摘要："+e.message;
     fail++;
    }
 
    done++;
-
    try{await putMany([a])}catch(e){}
-
    scheduleRender();
 
-   log(
-    "全文擷取進度："+done+"/"+targets.length+
-    "\n成功："+ok+"　失敗："+fail+
-    "\nGoogle 優先處理中..."
-   );
+   log("全文擷取進度："+done+"/"+targets.length+
+       "\n成功："+ok+"　失敗："+fail);
   }
  }
 
- await Promise.all([
-  worker(),worker(),worker()
- ]);
+ await Promise.all([worker(),worker(),worker()]);
 
  enriching=false;
 
- log(
-  "全文擷取完成！\n成功："+ok+
-  " 則　失敗："+fail+
-  " 則\n失敗的新聞可按「重試全文」再次處理。"
- );
+ log("全文擷取完成！\n成功："+ok+" 則　失敗："+fail+
+     " 則\n未取得全文的新聞仍保留原有摘要。");
 
  render();
 }
 
-/* =================================
-   13. Google 優先新聞合併
-================================= */
+/* 合併新聞及優先排序 */
 
 function mergeArticles(incoming){
  const map=new Map(articles.map(a=>{
   if(a.priority===undefined){
-   a.priority=a.source?.startsWith("Google")?0:20;
+   a.priority=(a.source||"").startsWith("Google")?10:20;
   }
   return [a.link,a];
  }));
@@ -897,16 +802,9 @@ function mergeArticles(incoming){
     category:better?a.category:old.category,
     priority:Math.min(old.priority??99,a.priority??99),
     image:old.image||a.image,
-    images:[...new Set([
-     ...(old.images||[]),
-     ...(a.images||[])
-    ])].slice(0,8),
-    desc:old.full?old.desc:(better?a.desc:old.desc),
-    full:old.full,
-    read:old.read,
-    favorite:old.favorite
+    images:[...new Set([...(old.images||[]),...(a.images||[])])].slice(0,8),
+    desc:old.full?old.desc:(better?a.desc:old.desc)
    });
-
   }else{
    map.set(a.link,a);
   }
@@ -917,24 +815,18 @@ function mergeArticles(incoming){
  );
 }
 
-/* =================================
-   14. 更新新聞
-================================= */
+/* 更新 */
 
 async function syncNews(){
  if(busy)return;
-
- if(!navigator.onLine){
-  alert("請先連接網路");
-  return;
- }
+ if(!navigator.onLine){alert("請先連接網路");return}
 
  busy=true;
  $("sync").disabled=true;
  $("sync").textContent="⏳ 正在抓取...";
 
  try{
-  log("Google 新聞優先抓取中...\n正在同時連接 "+SOURCES.length+" 個來源。");
+  log("Google 繁體財經優先抓取中...\n正在連接 "+SOURCES.length+" 個來源");
 
   const results=await mapLimit(SOURCES,4,s=>
    fetchSource(s).then(r=>({s,r}))
@@ -952,46 +844,39 @@ async function syncNews(){
   });
 
   if(!incoming.length){
-   log(
-    "所有新聞來源均無法取得。\n\n"+
-    report.join("\n")+
-    "\n\n原有新聞資料沒有刪除。"
-   );
+   log("所有來源均無法取得。\n\n"+report.join("\n")+
+       "\n\n原有資料沒有刪除。");
    return;
   }
 
   const all=mergeArticles(incoming);
-  const limit=Number($("limit").value);
-
+  const limit=$("limit").value;
   const keep=[],drop=[];
 
   all.forEach(a=>{
-   (a.favorite||keep.length<limit?keep:drop).push(a);
+   if(a.favorite||limit==="all"||keep.length<Number(limit)){
+    keep.push(a);
+   }else{
+    drop.push(a);
+   }
   });
 
   articles=keep;
-
   await putMany(articles);
 
-  if(drop.length){
-   await removeMany(drop.map(a=>a.link));
-  }
+  if(drop.length)await removeMany(drop.map(a=>a.link));
 
   render();
 
-  log(
-   "RSS更新完成！\n\n"+
-   report.join("\n")+
-   "\n\n本次取得："+incoming.length+
-   "則\n保存："+articles.length+
-   "則\n接著擷取 Google 優先新聞全文及照片..."
-  );
+  log("RSS更新完成！\n\n"+report.join("\n")+
+      "\n\n本次取得："+incoming.length+
+      "則\n保存："+articles.length+
+      "則\n開始擷取全文及照片...");
 
   await enrichArticles(articles);
 
  }catch(e){
   log("更新錯誤："+e.message+"\n原有新聞仍保留。");
-
  }finally{
   busy=false;
   $("sync").disabled=false;
@@ -999,34 +884,25 @@ async function syncNews(){
  }
 }
 
-/* =================================
-   15. 測試來源
-================================= */
+/* 測試來源 */
 
 async function testSources(){
  if(busy)return;
-
- if(!navigator.onLine){
-  alert("請先連接網路");
-  return;
- }
+ if(!navigator.onLine){alert("請先連接網路");return}
 
  busy=true;
  $("test").disabled=true;
  $("test").textContent="測試中...";
 
  try{
-  log("測試 Google 及其他新聞來源...");
-
+  log("正在測試 Google 及其他來源...");
   const res=await mapLimit(SOURCES,4,s=>
    fetchSource(s).then(r=>
     r.ok?"✓ "+s.name+"："+r.list.length+"則":
     "✗ "+s.name+"："+r.error
    )
   );
-
   log("新聞來源測試結果：\n\n"+res.join("\n"));
-
  }finally{
   busy=false;
   $("test").disabled=false;
@@ -1034,50 +910,35 @@ async function testSources(){
  }
 }
 
-/* =================================
-   16. 統計
-================================= */
+/* 統計 */
 
 function updateStats(){
  $("total").textContent=articles.length;
-
- $("favCount").textContent=
-  articles.filter(a=>a.favorite).length;
+ $("favCount").textContent=articles.filter(a=>a.favorite).length;
 
  const d=new Date();
+ const start=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
 
- const start=new Date(
-  d.getFullYear(),d.getMonth(),d.getDate()
- ).getTime();
-
- $("today").textContent=
-  articles.filter(a=>a.pubDate>=start).length;
+ $("today").textContent=articles.filter(a=>a.pubDate>=start).length;
 }
 
 function dateText(t){
  const d=new Date(t);
-
- return isNaN(d.getTime())
-  ?"日期不明":d.toLocaleString("zh-TW");
+ return isNaN(d.getTime())?"日期不明":d.toLocaleString("zh-TW");
 }
 
 function el(tag,cls,txt){
  const x=document.createElement(tag);
-
  if(cls)x.className=cls;
  if(txt!==undefined)x.textContent=txt;
-
  return x;
 }
 
-/* =================================
-   17. 照片放大
-================================= */
+/* 照片 */
 
 function showPhoto(url){
  const s=validURL(url);
  if(!s)return;
-
  $("largePhoto").src=s;
  $("photoModal").style.display="flex";
 }
@@ -1088,7 +949,6 @@ function closePhoto(){
 }
 
 $("closePhoto").onclick=closePhoto;
-
 $("photoModal").onclick=e=>{
  if(e.target===$("photoModal"))closePhoto();
 };
@@ -1097,30 +957,21 @@ async function persist(a){
  try{await putMany([a])}catch(e){}
 }
 
-/* =================================
-   18. 新聞卡片
-   預設全部展開，不必點擊
-================================= */
+/* 新聞卡片 */
 
 function buildCard(a){
-
  const isGoogle=(a.source||"").startsWith("Google");
+ const isFinance=(a.source||"").includes("財經");
 
- const card=el(
-  "article",
-  "card open"+
-  (a.read?" read":"")+
-  (isGoogle?" google":"")
- );
+ const card=el("article",
+  "card open"+(a.read?" read":"")+(isGoogle?" google":""));
 
  const meta=el("div","meta");
-
  const left=el("span","tag",a.source);
  const right=el("span","",dateText(a.pubDate));
 
- if(isGoogle){
-  left.classList.add("google-title");
- }
+ if(isGoogle)left.classList.add("google-label");
+ if(isFinance)left.classList.add("finance-label");
 
  meta.append(left,right);
 
@@ -1129,31 +980,21 @@ function buildCard(a){
 
  card.append(meta,h3,body);
 
- /* 標題只負責收合，不開啟外部網站 */
  h3.onclick=()=>{
   card.classList.toggle("open");
-
   if(card.classList.contains("open")){
-   card.scrollIntoView({
-    block:"nearest",
-    behavior:"smooth"
-   });
+   card.scrollIntoView({block:"nearest",behavior:"smooth"});
   }
  };
 
- /* 圖片來源合併 */
  const imgs=[];
-
  [a.image,...(a.images||[])].forEach(u=>{
   if(validURL(u)&&!imgs.includes(u))imgs.push(u);
  });
 
  if(imgs.length){
-
   const img=el("img","news-image");
-
   let i=0;
-
   img.alt=a.title;
   img.loading="lazy";
   img.decoding="async";
@@ -1161,63 +1002,36 @@ function buildCard(a){
 
   img.onerror=()=>{
    i++;
-   if(i<imgs.length){
-    img.src=imgs[i];
-   }else{
-    img.remove();
-   }
+   if(i<imgs.length)img.src=imgs[i];
+   else img.remove();
   };
 
   img.onclick=()=>showPhoto(img.src);
   img.src=imgs[0];
-
   body.appendChild(img);
  }
 
- const desc=el(
-  "div",
-  "desc",
-  stripURL(a.desc)||"目前沒有可顯示的內文。"
- );
-
- body.appendChild(desc);
-
- body.appendChild(
-  el("div","article-status",a.fullStatus||"等待全文擷取")
- );
+ body.appendChild(el("div","desc",stripURL(a.desc)||"目前沒有可顯示的內文。"));
+ body.appendChild(el("div","article-status",a.fullStatus||"等待全文擷取"));
 
  const actions=el("div","actions");
 
- const toggle=el(
-  "button","",
-  a.read?"標為未讀":"標為已讀"
- );
-
+ const toggle=el("button","",a.read?"標為未讀":"標為已讀");
  toggle.onclick=()=>{
   a.read=!a.read;
   card.classList.toggle("read",a.read);
-
   toggle.textContent=a.read?"標為未讀":"標為已讀";
-
   persist(a);
   updateStats();
-
   if(filter==="unread")render();
  };
 
- const star=el(
-  "button","star",
-  a.favorite?"★ 已收藏":"☆ 收藏"
- );
-
+ const star=el("button","star",a.favorite?"★ 已收藏":"☆ 收藏");
  star.onclick=()=>{
   a.favorite=!a.favorite;
-
   star.textContent=a.favorite?"★ 已收藏":"☆ 收藏";
-
   persist(a);
   updateStats();
-
   if(filter==="fav")render();
  };
 
@@ -1225,26 +1039,15 @@ function buildCard(a){
 
  if(navigator.share){
   const sh=el("button","","分享");
-
-  sh.onclick=()=>{
-   navigator.share({
-    title:a.title,
-    url:a.link
-   }).catch(()=>{});
-  };
-
+  sh.onclick=()=>navigator.share({title:a.title,url:a.link}).catch(()=>{});
   actions.appendChild(sh);
  }
 
  body.appendChild(actions);
-
  return card;
 }
 
-/* =================================
-   19. 顯示新聞
-   Google 永遠優先
-================================= */
+/* 顯示新聞：Google財經第一，繁體第二 */
 
 function render(){
  updateStats();
@@ -1253,25 +1056,18 @@ function render(){
  const kw=$("search").value.trim().toLowerCase();
 
  const list=articles.filter(a=>{
-
   if(filter==="tw"&&a.category!=="tw")return false;
   if(filter==="cn"&&a.category!=="cn")return false;
   if(filter==="fav"&&!a.favorite)return false;
   if(filter==="unread"&&a.read)return false;
 
-  return !kw||
-   (a.title+" "+a.desc+" "+a.source)
-    .toLowerCase().includes(kw);
-
+  return !kw||(a.title+" "+a.desc+" "+a.source).toLowerCase().includes(kw);
  }).sort((a,b)=>{
-
-  /* 第一排序：Google 優先 */
-  const pa=a.priority??(a.source?.startsWith("Google")?0:20);
-  const pb=b.priority??(b.source?.startsWith("Google")?0:20);
+  const pa=a.priority??99;
+  const pb=b.priority??99;
 
   if(pa!==pb)return pa-pb;
 
-  /* 第二排序：日期 */
   return $("sort").value==="old"
    ?a.pubDate-b.pubDate
    :b.pubDate-a.pubDate;
@@ -1280,43 +1076,51 @@ function render(){
  box.replaceChildren();
 
  if(!list.length){
-  box.appendChild(
-   el("div","empty","目前沒有符合條件的新聞")
-  );
-
+  box.appendChild(el("div","empty","目前沒有符合條件的新聞"));
   $("more").style.display="none";
   return;
  }
 
+ /* 全部顯示模式 */
+ const showAll=$("limit").value==="all";
+ const count=showAll?list.length:shown;
+
  const frag=document.createDocumentFragment();
 
- list.slice(0,shown).forEach(a=>{
+ list.slice(0,count).forEach(a=>{
   frag.appendChild(buildCard(a));
  });
 
  box.appendChild(frag);
 
  $("more").style.display=
-  list.length>shown?"block":"none";
+  !showAll&&list.length>shown?"block":"none";
 
- $("moreBtn").textContent=
-  "載入更多（還有 "+(list.length-shown)+" 則）";
+ if(!showAll){
+  $("moreBtn").textContent="載入更多（還有 "+(list.length-shown)+" 則）";
+ }
 }
 
-/* =================================
-   20. 按鈕及事件
-================================= */
+/* 回頂浮標 */
+
+const topFloat=$("topFloat");
+
+window.addEventListener("scroll",()=>{
+ topFloat.classList.toggle("hidden",window.scrollY<180);
+},{passive:true});
+
+topFloat.onclick=()=>{
+ window.scrollTo({top:0,behavior:"smooth"});
+};
+
+/* 按鈕事件 */
 
 $("sync").onclick=syncNews;
 $("test").onclick=testSources;
 
 $("retry").onclick=()=>{
  if(busy||enriching)return;
-
- articles.forEach(a=>{
-  if(!a.full)a.failed=0;
- });
-
+ articles.forEach(a=>{if(!a.full)a.failed=0});
  enrichArticles(articles,true);
 };
 
@@ -1326,10 +1130,8 @@ $("moreBtn").onclick=()=>{
 };
 
 let st;
-
 $("search").oninput=()=>{
  clearTimeout(st);
-
  st=setTimeout(()=>{
   shown=PAGE;
   render();
@@ -1350,49 +1152,40 @@ $("auto").onchange=applySettings;
 
 $("limit").onchange=()=>{
  applySettings();
- log("保存數量設定已更改，下次更新生效。");
+ shown=PAGE;
+ render();
+
+ if($("limit").value==="all"){
+  log("已切換全部新聞顯示模式。\n目前保存的新聞將一次全部顯示。");
+ }else{
+  log("已變更保存數量。下次更新時依新設定整理新聞。");
+ }
 };
 
-/* =================================
-   21. 網路狀態
-================================= */
+/* 網路 */
 
 function setNet(){
  const on=navigator.onLine;
-
- $("status").textContent=on
-  ?"● 網路已連線"
-  :"○ 離線閱讀模式";
-
- $("status").className=
-  "status"+(on?"":" offline");
+ $("status").textContent=on?"● 網路已連線":"○ 離線閱讀模式";
+ $("status").className="status"+(on?"":" offline");
 }
 
-window.addEventListener("online",()=>{
- setNet();
-});
-
+window.addEventListener("online",setNet);
 window.addEventListener("offline",setNet);
 
-/* =================================
-   22. 啟動
-================================= */
+/* 啟動 */
 
 async function start(){
-
  loadSettings();
 
  try{
   await dbInit();
-
   articles=await getAll();
 
-  /* 舊版資料升級 */
   articles.forEach(a=>{
    if(a.priority===undefined){
-    a.priority=(a.source||"").startsWith("Google")?0:20;
+    a.priority=(a.source||"").startsWith("Google")?10:20;
    }
-
    if(!Array.isArray(a.images)){
     a.images=a.image?[a.image]:[];
    }
@@ -1404,11 +1197,9 @@ async function start(){
   if(!articles.length&&navigator.onLine){
    await syncNews();
   }else{
-   log(
-    "本機新聞載入完成，共 "+articles.length+
-    " 則。\nGoogle 新聞已設定優先顯示。\n"+
-    "按更新按鈕抓取最新新聞、全文及照片。"
-   );
+   log("本機新聞載入完成，共 "+articles.length+
+       " 則。\nGoogle 繁體財經優先顯示。\n"+
+       "可選擇「保存全部新聞」一次顯示所有保存內容。");
   }
 
  }catch(e){
