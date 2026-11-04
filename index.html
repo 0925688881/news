@@ -162,7 +162,7 @@ body{padding:9px;padding-top:max(9px,env(safe-area-inset-top))}
 
 <script>
 "use strict";
-const DB="RobustChineseNewsDB",STORE="articles",FULL_LIMIT=40,PAGE=30,SETTINGS="nexusNewsSettings";
+const DB="RobustChineseNewsDB",STORE="articles",FULL_LIMIT=100,PAGE=30,SETTINGS="nexusNewsSettings";
 let db,articles=[],filter="all",busy=false,enriching=false,shown=PAGE,autoTimer=null,renderTimer=null;
 const $=id=>document.getElementById(id);
 
@@ -315,7 +315,7 @@ function makeArticle(title,link,date,description,source,image,images=[]){
   desc:clean(description)||"目前沒有提供新聞摘要。",
   image:imgs[0]||"",images:[...new Set(imgs)].slice(0,15),
   source:source.name,category:source.type,
-  favorite:false,read:false,full:false,failed:0,fullStatus:"等待擷取"
+  favorite:false,read:false,full:false,failed:0,fullStatus:""
  };
 }
 
@@ -625,7 +625,7 @@ function buildCard(a){
   body.appendChild(img);
  }
  body.appendChild(el("div","desc",stripURL(a.desc)||"目前沒有可顯示的內文。"));
- body.appendChild(el("div","article-status",a.fullStatus||"等待全文擷取"));
+ if((a.fullStatus||"").startsWith("未取得"))body.appendChild(el("div","article-status",a.fullStatus));
 
  const actions=el("div","actions");
  const toggle=el("button","",a.read?"標為未讀":"標為已讀");
