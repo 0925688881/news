@@ -6,8 +6,13 @@
 <meta name="theme-color" content="#080f20">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>NEXUS NEWS 8.3</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23080f20'/%3E%3Ccircle cx='50' cy='50' r='34' fill='none' stroke='%2340dfdd' stroke-width='5'/%3E%3Cpath d='M17 50h66M50 16c-24 20-24 48 0 68M50 16c24 20 24 48 0 68' fill='none' stroke='%2340dfdd' stroke-width='3'/%3E%3C/svg%3E">
+<meta name="apple-mobile-web-app-title" content="NEXUS NEWS">
+<meta name="application-name" content="NEXUS NEWS">
+<meta name="description" content="NEXUS NEWS 新聞中心：多來源新聞、收藏、全文及最新200則離線保存。">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" sizes="192x192" href="./icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<title>NEXUS NEWS 8.4</title>
 <style>
 *{box-sizing:border-box}
 :root{--bg:#080f20;--panel:#12213a;--line:#29415f;--deep:#091529;--text:#edf4ff;--mute:#91a4c0;--cyan:#40dfdd;--blue:#147ee9;--fs:25px}
@@ -88,22 +93,10 @@ body{padding:9px;padding-top:max(9px,env(safe-area-inset-top))}
 
 <div class="header">
  <div class="brand">
-  <svg class="brand-icon" viewBox="0 0 100 100">
-   <defs>
-    <linearGradient id="earth" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#40dfdd"/><stop offset="1" stop-color="#147ee9"/></linearGradient>
-    <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-   </defs>
-   <circle cx="50" cy="50" r="34" fill="#091529" stroke="url(#earth)" stroke-width="3" filter="url(#glow)"/>
-   <ellipse cx="50" cy="50" rx="15" ry="34" fill="none" stroke="#40dfdd" stroke-width="2"/>
-   <ellipse cx="50" cy="50" rx="34" ry="13" fill="none" stroke="#40dfdd" stroke-width="2"/>
-   <path d="M17 50H83M50 16V84" stroke="#40dfdd" stroke-width="1.5" opacity=".7"/>
-   <path d="M26 29L74 71M74 29L26 71" stroke="#147ee9" stroke-width="1" opacity=".5"/>
-   <circle cx="50" cy="50" r="4" fill="#fff"/>
-   <path d="M67 12L71 20L80 23L71 26L67 34L63 26L54 23L63 20Z" fill="#40dfdd"/>
-  </svg>
+  <img class="brand-icon" src="./icons/icon-192.png" alt="NEXUS NEWS 圖示" style="border-radius:14px">
   <div>
    <div class="logo">✦ NEXUS NEWS</div>
-   <div class="sub">NEWEST FIRST · 8.3 OFFLINE EDITION</div>
+   <div class="sub">NEWEST FIRST · 8.4 PWA OFFLINE EDITION</div>
   </div>
  </div>
  <div id="status" class="status">● 檢查網路中</div>
@@ -120,10 +113,10 @@ body{padding:9px;padding-top:max(9px,env(safe-area-inset-top))}
  <b style="color:var(--cyan)">⚙ 新聞設定</b>
  <div class="controls">
   <select id="limit">
-   <option value="100">保存100則</option>
-   <option value="200">保存200則</option>
-   <option value="500">保存500則</option>
-   <option value="all">保存全部新聞</option>
+   <option value="100">一般新聞保存100則（離線仍保存200則）</option>
+   <option value="200">一般新聞保存200則</option>
+   <option value="500">一般新聞保存500則</option>
+   <option value="all">一般新聞保存全部新聞</option>
   </select>
   <select id="sort">
    <option value="new">日期最新在最上</option>
@@ -147,7 +140,7 @@ body{padding:9px;padding-top:max(9px,env(safe-area-inset-top))}
   <button id="retry">↻ 重試全文</button>
  </div>
  <div class="small">
-  自動離線保存最新200則新聞及照片。新聞文字會先保存到本機，照片則會盡力下載保存；收藏新聞仍會保留。離線保存與一般新聞保存數量分開計算。
+  系統固定自動保存最新200則新聞文字及照片。照片會盡力下載保存；若圖片網站禁止跨網域下載，會標示失敗，不會假稱已保存。一般新聞保存數量與離線保存數量分開計算。
  </div>
  <div class="row">
   <button id="offlineNow">📥 立即補存最新200則</button>
@@ -165,7 +158,7 @@ body{padding:9px;padding-top:max(9px,env(safe-area-inset-top))}
 
 <div id="news"><div class="empty">正在載入新聞...</div></div>
 <div id="more" style="display:none"><button class="primary" id="moreBtn">載入更多</button></div>
-<div class="footer">✦ NEXUS NEWS CENTER 8.3 · AUTOMATIC OFFLINE ✦</div>
+<div class="footer">✦ NEXUS NEWS CENTER 8.4 · PWA AUTOMATIC OFFLINE ✦</div>
 
 <button id="topFloat" aria-label="回到最上面"><span class="arrow">↑</span><small>回頂部</small></button>
 
@@ -302,7 +295,7 @@ function applySettings(){
  }
 }
 
-/* IndexedDB：沿用8.2的資料庫與版本，不刪除舊資料 */
+/* IndexedDB：沿用8.2資料庫及版本，不刪除舊資料 */
 function dbInit(){
  return new Promise((res,rej)=>{
   const r=indexedDB.open(DB,1);
@@ -338,6 +331,7 @@ function putMany(list){
   tx.oncomplete=()=>res();
   tx.onerror=tx.onabort=()=>rej(tx.error||new Error("資料保存失敗"));
  });
+
 }
 
 function removeMany(links){
@@ -710,8 +704,11 @@ async function syncNews(){
   const keep=[],drop=[];
   let n=0;
 
+  /* 離線固定需要最新200則，因此一般保存設定低於200時也保留200筆底層資料 */
+  const retention=limit==="all"?Infinity:Math.max(OFFLINE_LIMIT,Number(limit)||200);
+
   all.forEach(a=>{
-   if(a.favorite||limit==="all"||n<Number(limit)){
+   if(a.favorite||n<retention){
     keep.push(a);
     if(!a.favorite)n++;
    }else{
@@ -732,7 +729,8 @@ async function syncNews(){
    "RSS更新完成！\n\n"+
    report.join("\n")+
    "\n\n本次取得："+incoming.length+"則"+
-   "\n保存："+articles.length+"則"+
+   "\n一般保存設定："+limit+"則"+
+   "\n實際保留："+articles.length+"則（離線保存需要至少200則）"+
    "\n開始擷取全文..."
   );
 
@@ -743,7 +741,7 @@ async function syncNews(){
   }
 
  }catch(e){
-  log("更新錯誤："+e.message+"\n原有新聞仍保留。");
+  log("更新錯誤："+e.message+"\n原有資料仍保留。");
  }finally{
   busy=false;
   $("sync").disabled=false;
@@ -781,60 +779,34 @@ async function testSources(){
 }
 
 /* 離線照片處理 */
-
-/* 取得照片候選網址，原圖優先，其次圖片代理 */
 function getImageCandidates(a){
  const result=[];
-
  [a.image,...(a.images||[])].forEach(u=>{
   u=validURL(u);
   if(!u)return;
-
   if(!result.includes(u))result.push(u);
-
   try{
    const p=new URL(u);
-   const proxy="https://images.weserv.nl/?url="+
-    encodeURIComponent(p.host+p.pathname+p.search);
-
+   const proxy="https://images.weserv.nl/?url="+encodeURIComponent(p.host+p.pathname+p.search);
    if(!result.includes(proxy))result.push(proxy);
   }catch(e){}
  });
-
  return result;
 }
 
-/* 下載照片 Blob。跨網域禁止時會嘗試下一個來源 */
 async function fetchImageBlob(url){
  const c=new AbortController();
  const timer=setTimeout(()=>c.abort(),18000);
-
  try{
-  const r=await fetch(url,{
-   method:"GET",
-   mode:"cors",
-   cache:"force-cache",
-   signal:c.signal
-  });
-
+  const r=await fetch(url,{method:"GET",mode:"cors",cache:"force-cache",signal:c.signal});
   if(!r.ok)throw Error("HTTP "+r.status);
-
   const type=(r.headers.get("content-type")||"").toLowerCase();
-  if(type&&!type.startsWith("image/")){
-   throw Error("回傳內容不是圖片");
-  }
-
+  if(type&&!type.startsWith("image/"))throw Error("回傳內容不是圖片");
   const blob=await r.blob();
-
   if(!blob||!blob.size)throw Error("圖片內容為空");
   if(blob.size>MAX_IMAGE_BYTES)throw Error("圖片超過8MB");
-
-  if(blob.type&&!blob.type.startsWith("image/")){
-   throw Error("圖片格式不支援");
-  }
-
+  if(blob.type&&!blob.type.startsWith("image/"))throw Error("圖片格式不支援");
   return blob;
-
  }catch(e){
   throw Error(e.name==="AbortError"?"照片下載逾時":e.message);
  }finally{
@@ -842,169 +814,97 @@ async function fetchImageBlob(url){
  }
 }
 
-/* 只保存每篇新聞一張主照片，控制容量 */
 async function saveArticlePhoto(a){
  if(!navigator.onLine)throw Error("目前離線");
-
  if(Array.isArray(a.offlineImages)&&a.offlineImages.some(x=>x&&x.blob&&x.blob.size)){
   return {ok:true,existing:true};
  }
-
  const candidates=getImageCandidates(a);
  if(!candidates.length)throw Error("沒有可下載的照片網址");
-
  const errors=[];
-
  for(const url of candidates.slice(0,6)){
   try{
    const blob=await fetchImageBlob(url);
-
-   a.offlineImages=[{
-    url:url,
-    blob:blob,
-    savedAt:Date.now()
-   }];
-
+   a.offlineImages=[{url:url,blob:blob,savedAt:Date.now()}];
    a.offlineImageSaved=true;
    a.offlineImageError="";
    await putMany([a]);
-
    return {ok:true,size:blob.size,url};
-  }catch(e){
-   errors.push(e.message);
-  }
+  }catch(e){errors.push(e.message)}
  }
-
  a.offlineImageSaved=false;
  a.offlineImageError=errors.join(" / ").slice(0,300);
  await putMany([a]).catch(()=>{});
-
  throw Error(a.offlineImageError||"照片下載失敗");
 }
 
-/* 自動保存最新200則新聞文字及照片 */
 async function autoSaveLatestOffline(){
  if(offlineBusy||!db)return;
  offlineBusy=true;
-
  try{
   const sorted=[...articles].sort((a,b)=>b.pubDate-a.pubDate);
   const targets=sorted.slice(0,OFFLINE_LIMIT);
-
   if(!targets.length){
    $("offlineSummary").textContent="離線保存：目前沒有新聞";
    setProgress(0,0);
    return;
   }
-
-  /*
-   * 先將最新200則的文字與離線標記保存。
-   * 新聞文字本身已在IndexedDB內，不需要再次下載。
-   */
   targets.forEach(a=>{
    a.offlineSaved=true;
    if(!Array.isArray(a.offlineImages))a.offlineImages=[];
   });
-
   await putMany(targets);
 
-  /*
-   * 超出最新200則的新聞清除離線照片及離線標記，
-   * 不會刪除新聞本身，也不會刪除收藏。
-   */
   const targetLinks=new Set(targets.map(a=>a.link));
-  const oldOffline=articles.filter(a=>
-   a.offlineSaved&&!targetLinks.has(a.link)
-  );
-
+  const oldOffline=articles.filter(a=>a.offlineSaved&&!targetLinks.has(a.link));
   for(const a of oldOffline){
    a.offlineSaved=false;
    a.offlineImages=[];
    a.offlineImageSaved=false;
    a.offlineImageError="";
   }
+  if(oldOffline.length)await putMany(oldOffline);
 
-  if(oldOffline.length){
-   await putMany(oldOffline);
-  }
-
-  const needPhotos=targets.filter(a=>
-   !(
-    Array.isArray(a.offlineImages)&&
-    a.offlineImages.some(x=>x&&x.blob&&x.blob.size)
-   )
-  );
-
-  let done=0,success=0,failed=0;
-  let bytes=0;
-
+  const needPhotos=targets.filter(a=>!(
+   Array.isArray(a.offlineImages)&&a.offlineImages.some(x=>x&&x.blob&&x.blob.size)
+  ));
+  let done=0,success=0,failed=0,bytes=0;
   const already=targets.length-needPhotos.length;
-
-  $("offlineSummary").textContent=
-   "離線保存：文字 "+targets.length+" 則，照片準備下載 "+needPhotos.length+" 張";
-
+  $("offlineSummary").textContent="離線保存：文字 "+targets.length+" 則，照片準備下載 "+needPhotos.length+" 張";
   setProgress(already,targets.length);
 
   if(!navigator.onLine){
-   $("offlineSummary").textContent=
-    "離線保存：新聞文字 "+targets.length+" 則；目前沒有網路，照片待連線後下載";
+   $("offlineSummary").textContent="離線保存：新聞文字 "+targets.length+" 則；目前沒有網路，照片待連線後下載";
    return;
   }
 
   let index=0;
-
   async function photoWorker(){
    while(index<needPhotos.length){
     const a=needPhotos[index++];
-
     try{
      const result=await saveArticlePhoto(a);
-     if(result.ok){
-      success++;
-      if(result.size)bytes+=result.size;
-     }
+     if(result.ok){success++;if(result.size)bytes+=result.size}
     }catch(e){
-     failed++;
-     a.offlineImageError=e.message;
+     failed++;a.offlineImageError=e.message;
      await putMany([a]).catch(()=>{});
     }
-
     done++;
     setProgress(already+done,targets.length);
-
     $("offlineSummary").textContent=
      "離線保存進度："+(already+done)+"/"+targets.length+
-     "｜照片成功："+(already+success)+
-     "｜照片失敗："+failed;
-
+     "｜照片成功："+(already+success)+"｜照片失敗："+failed;
     if(done%5===0)scheduleRender();
    }
   }
-
-  /* 兩張照片同時下載，避免對網站造成過大負擔 */
   await Promise.all([photoWorker(),photoWorker()]);
-
   const imageCount=targets.filter(a=>
-   Array.isArray(a.offlineImages)&&
-   a.offlineImages.some(x=>x&&x.blob&&x.blob.size)
+   Array.isArray(a.offlineImages)&&a.offlineImages.some(x=>x&&x.blob&&x.blob.size)
   ).length;
-
   const mb=(bytes/1024/1024).toFixed(1);
-
   $("offlineSummary").textContent=
-   "離線保存完成：新聞文字 "+targets.length+
-   " 則｜照片已保存 "+imageCount+
-   " 張｜本次下載約 "+mb+" MB";
-
-  log(
-   "最新200則離線保存作業完成。\n\n"+
-   "新聞文字：已保存 "+targets.length+" 則\n"+
-   "照片成功：目前共 "+imageCount+" 張\n"+
-   "本次照片下載：約 "+mb+" MB\n"+
-   "照片失敗："+failed+" 張\n\n"+
-   "照片失敗的新聞仍可離線閱讀文字摘要或已取得的全文。"
-  );
-
+   "離線保存完成：新聞文字 "+targets.length+" 則｜照片已保存 "+imageCount+" 張｜本次下載約 "+mb+" MB";
+  log("最新200則離線保存作業完成。\n\n新聞文字：已保存 "+targets.length+" 則\n照片成功：目前共 "+imageCount+" 張\n本次照片下載：約 "+mb+" MB\n照片失敗："+failed+" 張\n\n照片失敗的新聞仍可離線閱讀文字摘要或已取得的全文。");
  }catch(e){
   $("offlineSummary").textContent="離線保存遇到問題："+e.message;
   log("離線保存錯誤："+e.message);
@@ -1015,93 +915,48 @@ async function autoSaveLatestOffline(){
  }
 }
 
-/* 手動立即補存 */
 async function manualOfflineSave(){
- if(offlineBusy){
-  alert("離線保存正在進行，請稍候。");
-  return;
- }
- if(!navigator.onLine){
-  alert("目前沒有網路。已保存的新聞仍可離線閱讀，照片需要連線才能下載。");
-  return;
- }
+ if(offlineBusy){alert("離線保存正在進行，請稍候。");return}
+ if(!navigator.onLine){alert("目前沒有網路。已保存的新聞仍可離線閱讀，照片需要連線才能下載。");return}
  await autoSaveLatestOffline();
 }
 
-/* 清除離線照片，但保留新聞文字 */
 async function clearOfflinePhotos(){
  if(!confirm("確定清除所有離線照片？\n新聞文字、收藏及已讀資料都會保留。"))return;
-
  try{
-  const targets=articles.filter(a=>
-   Array.isArray(a.offlineImages)&&a.offlineImages.length
-  );
-
-  targets.forEach(a=>{
-   a.offlineImages=[];
-   a.offlineImageSaved=false;
-   a.offlineImageError="";
-  });
-
+  const targets=articles.filter(a=>Array.isArray(a.offlineImages)&&a.offlineImages.length);
+  targets.forEach(a=>{a.offlineImages=[];a.offlineImageSaved=false;a.offlineImageError=""});
   await putMany(targets);
-
-  offlineObjectURLs.forEach(url=>{
-   try{URL.revokeObjectURL(url)}catch(e){}
-  });
+  offlineObjectURLs.forEach(url=>{try{URL.revokeObjectURL(url)}catch(e){}});
   offlineObjectURLs.clear();
-
-  $("offlineSummary").textContent=
-   "離線照片已清除；最新200則新聞文字仍保留。";
-
+  $("offlineSummary").textContent="離線照片已清除；最新200則新聞文字仍保留。";
   log("已清除 "+targets.length+" 則新聞的離線照片。\n新聞文字、收藏及已讀資料均未刪除。");
-
   render();
-
- }catch(e){
-  alert("清除失敗："+e.message);
- }
+ }catch(e){alert("清除失敗："+e.message)}
 }
 
-/* 離線圖片 Blob 轉成可顯示網址 */
 function getOfflineImageURL(a){
  if(!Array.isArray(a.offlineImages))return "";
-
  const item=a.offlineImages.find(x=>x&&x.blob&&x.blob.size);
  if(!item)return "";
-
- if(offlineObjectURLs.has(a.link)){
-  return offlineObjectURLs.get(a.link);
- }
-
+ if(offlineObjectURLs.has(a.link))return offlineObjectURLs.get(a.link);
  try{
   const url=URL.createObjectURL(item.blob);
   offlineObjectURLs.set(a.link,url);
   return url;
- }catch(e){
-  return "";
- }
+ }catch(e){return ""}
 }
 
-/* 顯示統計 */
 function updateStats(){
  $("total").textContent=articles.length;
  $("favCount").textContent=articles.filter(a=>a.favorite).length;
-
  const d=new Date();
  const start=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
-
- $("today").textContent=
-  articles.filter(a=>a.pubDate>=start).length;
-
+ $("today").textContent=articles.filter(a=>a.pubDate>=start).length;
  const offlineCount=articles.filter(a=>a.offlineSaved).length;
- const photoCount=articles.filter(a=>
-  Array.isArray(a.offlineImages)&&
-  a.offlineImages.some(x=>x&&x.blob&&x.blob.size)
- ).length;
-
+ const photoCount=articles.filter(a=>Array.isArray(a.offlineImages)&&a.offlineImages.some(x=>x&&x.blob&&x.blob.size)).length;
  if(!$("offlineSummary").textContent.includes("進度：")){
-  $("offlineSummary").textContent=
-   "離線資料：新聞文字 "+offlineCount+" 則｜離線照片 "+photoCount+" 張";
+  $("offlineSummary").textContent="離線資料：新聞文字 "+offlineCount+" 則｜離線照片 "+photoCount+" 張";
  }
 }
 
@@ -1109,490 +964,207 @@ function dateText(t){
  const d=new Date(t);
  return isNaN(d.getTime())?"日期不明":d.toLocaleString("zh-TW");
 }
-
 function el(tag,cls,txt){
  const x=document.createElement(tag);
  if(cls)x.className=cls;
  if(txt!==undefined)x.textContent=txt;
  return x;
 }
-
-/* 照片放大 */
 function showPhoto(url){
- const s=validURL(url);
+ const s=validURL(url)||String(url||"");
  if(!s)return;
  $("largePhoto").src=s;
  $("photoModal").style.display="flex";
 }
-
 function closePhoto(){
  $("photoModal").style.display="none";
  $("largePhoto").removeAttribute("src");
 }
-
 $("closePhoto").onclick=closePhoto;
-$("photoModal").onclick=e=>{
- if(e.target===$("photoModal"))closePhoto();
-};
+$("photoModal").onclick=e=>{if(e.target===$("photoModal"))closePhoto()};
+async function persist(a){try{await putMany([a])}catch(e){}}
 
-async function persist(a){
- try{await putMany([a])}catch(e){}
-}
-
-/* 圖片候選網址 */
 function getDisplayImages(a){
  const offline=getOfflineImageURL(a);
  if(offline)return [offline];
-
  const result=[];
  [a.image,...(a.images||[])].forEach(u=>{
   u=validURL(u);
   if(!u)return;
-
   if(!result.includes(u))result.push(u);
-
   try{
    const p=new URL(u);
-   const proxy="https://images.weserv.nl/?url="+
-    encodeURIComponent(p.host+p.pathname+p.search);
+   const proxy="https://images.weserv.nl/?url="+encodeURIComponent(p.host+p.pathname+p.search);
    if(!result.includes(proxy))result.push(proxy);
   }catch(e){}
  });
-
  return result;
 }
 
-/* 建立新聞卡片 */
 function buildCard(a){
  const isGoogle=(a.source||"").startsWith("Google");
  const isFinance=(a.source||"").includes("財經");
-
- const card=el(
-  "article",
-  "card open"+(a.read?" read":"")+(isGoogle?" google":"")
- );
-
+ const card=el("article","card open"+(a.read?" read":"")+(isGoogle?" google":""));
  const meta=el("div","meta");
  const left=el("span","tag",a.source);
  if(isFinance)left.classList.add("finance-label");
-
- meta.append(
-  left,
-  el("span","",dateText(a.pubDate))
- );
-
+ meta.append(left,el("span","",dateText(a.pubDate)));
  const headline=el("div","headline-row");
  const titleBox=el("div","headline-title");
  const h3=el("h3","",a.title);
  const imgs=getDisplayImages(a);
-
  if(imgs.length){
   const img=el("img","news-thumb");
-  let i=0;
-
-  img.alt=a.title;
-  img.loading="lazy";
-  img.decoding="async";
-  img.referrerPolicy="no-referrer";
-
-  img.onerror=()=>{
-   i++;
-   if(i<imgs.length){
-    img.src=imgs[i];
-   }else{
-    const p=el("div","thumb-placeholder","✦");
-    img.replaceWith(p);
-   }
-  };
-
-  img.onclick=()=>showPhoto(img.src);
-  img.src=imgs[0];
-  headline.appendChild(img);
-
- }else{
-  headline.appendChild(el("div","thumb-placeholder","✦"));
- }
-
- titleBox.appendChild(h3);
- headline.appendChild(titleBox);
-
- const body=el("div","body");
- card.append(meta,headline,body);
-
- h3.onclick=()=>{
-  card.classList.toggle("open");
-  if(card.classList.contains("open")){
-   card.scrollIntoView({block:"nearest",behavior:"smooth"});
-  }
- };
-
+  let i=0;img.alt=a.title;img.loading="lazy";img.decoding="async";img.referrerPolicy="no-referrer";
+  img.onerror=()=>{i++;if(i<imgs.length)img.src=imgs[i];else img.replaceWith(el("div","thumb-placeholder","✦"))};
+  img.onclick=()=>showPhoto(img.src);img.src=imgs[0];headline.appendChild(img);
+ }else headline.appendChild(el("div","thumb-placeholder","✦"));
+ titleBox.appendChild(h3);headline.appendChild(titleBox);
+ const body=el("div","body");card.append(meta,headline,body);
+ h3.onclick=()=>{card.classList.toggle("open");if(card.classList.contains("open"))card.scrollIntoView({block:"nearest",behavior:"smooth"})};
  if(imgs.length){
-  const img=el("img","news-image");
-  let i=0;
-
-  img.alt=a.title;
-  img.loading="lazy";
-  img.decoding="async";
-  img.referrerPolicy="no-referrer";
-
-  img.onerror=()=>{
-   i++;
-   if(i<imgs.length){
-    img.src=imgs[i];
-   }else{
-    img.remove();
-   }
-  };
-
-  img.onclick=()=>showPhoto(img.src);
-  img.src=imgs[0];
-  body.appendChild(img);
+  const img=el("img","news-image");let i=0;
+  img.alt=a.title;img.loading="lazy";img.decoding="async";img.referrerPolicy="no-referrer";
+  img.onerror=()=>{i++;if(i<imgs.length)img.src=imgs[i];else img.remove()};
+  img.onclick=()=>showPhoto(img.src);img.src=imgs[0];body.appendChild(img);
  }
-
- body.appendChild(
-  el("div","desc",stripURL(a.desc)||"目前沒有可顯示的內文。")
- );
-
- if((a.fullStatus||"").startsWith("未取得")){
-  body.appendChild(el("div","article-status",a.fullStatus));
- }
-
- /* 離線狀態 */
+ body.appendChild(el("div","desc",stripURL(a.desc)||"目前沒有可顯示的內文。"));
+ if((a.fullStatus||"").startsWith("未取得"))body.appendChild(el("div","article-status",a.fullStatus));
  if(a.offlineSaved){
-  const hasPhoto=Array.isArray(a.offlineImages)&&
-   a.offlineImages.some(x=>x&&x.blob&&x.blob.size);
-
-  body.appendChild(el(
-   "div",
-   "article-status offline-status",
-   hasPhoto
-    ?"✓ 已保存離線閱讀（文字＋照片）"
-    :"✓ 已保存離線閱讀（文字）"
-  ));
-
-  if(!hasPhoto&&a.offlineImageError){
-   body.appendChild(el(
-    "div",
-    "article-status offline-fail",
-    "照片尚未成功保存："+a.offlineImageError
-   ));
-  }
+  const hasPhoto=Array.isArray(a.offlineImages)&&a.offlineImages.some(x=>x&&x.blob&&x.blob.size);
+  body.appendChild(el("div","article-status offline-status",hasPhoto?"✓ 已保存離線閱讀（文字＋照片）":"✓ 已保存離線閱讀（文字）"));
+  if(!hasPhoto&&a.offlineImageError)body.appendChild(el("div","article-status offline-fail","照片尚未成功保存："+a.offlineImageError));
  }
-
  const actions=el("div","actions");
-
- /* 已讀 */
  const toggle=el("button","",a.read?"標為未讀":"標為已讀");
-
- toggle.onclick=()=>{
-  a.read=!a.read;
-  card.classList.toggle("read",a.read);
-  toggle.textContent=a.read?"標為未讀":"標為已讀";
-  persist(a);
-  updateStats();
-  if(filter==="unread")render();
- };
-
- /* 收藏 */
+ toggle.onclick=()=>{a.read=!a.read;card.classList.toggle("read",a.read);toggle.textContent=a.read?"標為未讀":"標為已讀";persist(a);updateStats();if(filter==="unread")render()};
  const star=el("button","star",a.favorite?"★ 已收藏":"☆ 收藏");
-
- star.onclick=()=>{
-  a.favorite=!a.favorite;
-  star.textContent=a.favorite?"★ 已收藏":"☆ 收藏";
-  persist(a);
-  updateStats();
-  if(filter==="fav")render();
- };
-
+ star.onclick=()=>{a.favorite=!a.favorite;star.textContent=a.favorite?"★ 已收藏":"☆ 收藏";persist(a);updateStats();if(filter==="fav")render()};
  actions.append(toggle,star);
-
- /* 閱讀原文 */
  const sourceBtn=el("button","source-btn","↗ 閱讀原文");
- sourceBtn.onclick=()=>{
-  const url=validURL(a.link);
-  if(url){
-   const win=window.open(url,"_blank","noopener");
-   if(!win){
-    location.href=url;
-   }
-  }
- };
+ sourceBtn.onclick=()=>{const url=validURL(a.link);if(url){const win=window.open(url,"_blank","noopener");if(!win)location.href=url}};
  actions.appendChild(sourceBtn);
-
- /* 離線保存狀態按鈕 */
- const offlineBtn=el(
-  "button",
-  "offline-btn",
-  a.offlineSaved?"✓ 已列入離線":"📥 保存離線"
- );
-
+ const offlineBtn=el("button","offline-btn",a.offlineSaved?"✓ 已列入離線":"📥 保存離線");
  offlineBtn.onclick=async()=>{
-  if(!navigator.onLine){
-   alert("新聞文字已經可以離線閱讀；若要下載照片，請先連接網路。");
-   return;
-  }
-
-  offlineBtn.disabled=true;
-  offlineBtn.textContent="下載中...";
-
-  try{
-   a.offlineSaved=true;
-   await persist(a);
-
-   await saveArticlePhoto(a);
-
-   offlineBtn.textContent="✓ 離線完成";
-   render();
-
-  }catch(e){
-   a.offlineSaved=true;
-   await persist(a);
-   offlineBtn.textContent="文字已保存";
-   alert("新聞文字已保存，但照片下載失敗：\n"+e.message);
-   render();
-
-  }finally{
-   offlineBtn.disabled=false;
-  }
+  if(!navigator.onLine){alert("新聞文字已經可以離線閱讀；若要下載照片，請先連接網路。");return}
+  offlineBtn.disabled=true;offlineBtn.textContent="下載中...";
+  try{a.offlineSaved=true;await persist(a);await saveArticlePhoto(a);offlineBtn.textContent="✓ 離線完成";render()}
+  catch(e){a.offlineSaved=true;await persist(a);offlineBtn.textContent="文字已保存";alert("新聞文字已保存，但照片下載失敗：\n"+e.message);render()}
+  finally{offlineBtn.disabled=false}
  };
-
  actions.appendChild(offlineBtn);
-
- /* 分享 */
  if(navigator.share){
   const sh=el("button","","分享");
-  sh.onclick=()=>navigator.share({
-   title:a.title,
-   url:a.link
-  }).catch(()=>{});
+  sh.onclick=()=>navigator.share({title:a.title,url:a.link}).catch(()=>{});
   actions.append(sh);
  }
-
  body.appendChild(actions);
  return card;
 }
 
-/* 顯示：依日期排序 */
 function render(){
  updateStats();
-
  const box=$("news");
  const kw=$("search").value.trim().toLowerCase();
-
  const list=articles.filter(a=>{
   if(filter==="tw"&&a.category!=="tw")return false;
   if(filter==="cn"&&a.category!=="cn")return false;
   if(filter==="fav"&&!a.favorite)return false;
   if(filter==="unread"&&a.read)return false;
   if(filter==="offline"&&!a.offlineSaved)return false;
-
-  return !kw||
-   (a.title+" "+a.desc+" "+a.source).toLowerCase().includes(kw);
+  return !kw||(a.title+" "+a.desc+" "+a.source).toLowerCase().includes(kw);
  }).sort(byDate);
-
  box.replaceChildren();
-
  if(!list.length){
-  const msg=filter==="offline"
-   ?"目前沒有離線新聞。連線後按「開始更新新聞」，系統會自動保存最新200則。"
-   :"目前沒有符合條件的新聞";
-
-  box.appendChild(el("div","empty",msg));
-  $("more").style.display="none";
-  return;
+  const msg=filter==="offline"?"目前沒有離線新聞。連線後按「開始更新新聞」，系統會自動保存最新200則。":"目前沒有符合條件的新聞";
+  box.appendChild(el("div","empty",msg));$("more").style.display="none";return;
  }
-
  const showAll=$("limit").value==="all";
  const count=showAll?list.length:shown;
  const frag=document.createDocumentFragment();
-
- list.slice(0,count).forEach(a=>{
-  frag.appendChild(buildCard(a));
- });
-
+ list.slice(0,count).forEach(a=>frag.appendChild(buildCard(a)));
  box.appendChild(frag);
-
  const more=!showAll&&list.length>shown;
  $("more").style.display=more?"block":"none";
-
- if(more){
-  $("moreBtn").textContent="載入更多（還有 "+(list.length-shown)+" 則）";
- }
+ if(more)$("moreBtn").textContent="載入更多（還有 "+(list.length-shown)+" 則）";
 }
 
-/* 回頂部 */
 const topFloat=$("topFloat");
+window.addEventListener("scroll",()=>topFloat.classList.toggle("hidden",window.scrollY<180),{passive:true});
+topFloat.onclick=()=>window.scrollTo({top:0,behavior:"smooth"});
 
-window.addEventListener("scroll",()=>{
- topFloat.classList.toggle("hidden",window.scrollY<180);
-},{passive:true});
-
-topFloat.onclick=()=>window.scrollTo({
- top:0,
- behavior:"smooth"
-});
-
-/* 控制事件 */
 $("sync").onclick=syncNews;
 $("test").onclick=testSources;
-
-$("retry").onclick=()=>{
- if(busy||enriching)return;
- articles.forEach(a=>{
-  if(!a.full)a.failed=0;
- });
- enrichArticles(articles,true);
-};
-
+$("retry").onclick=()=>{if(busy||enriching)return;articles.forEach(a=>{if(!a.full)a.failed=0});enrichArticles(articles,true)};
 $("offlineNow").onclick=manualOfflineSave;
 $("clearOffline").onclick=clearOfflinePhotos;
-
-$("moreBtn").onclick=()=>{
- shown+=PAGE;
- render();
-};
-
-$("search").oninput=()=>{
- clearTimeout(searchTimer);
- searchTimer=setTimeout(()=>{
-  shown=PAGE;
-  render();
- },250);
-};
-
-$("sort").onchange=()=>{
- applySettings();
- shown=PAGE;
- render();
-};
-
-$("size").onchange=()=>{
- applySettings();
- render();
-};
-
+$("moreBtn").onclick=()=>{shown+=PAGE;render()};
+$("search").oninput=()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{shown=PAGE;render()},250)};
+$("sort").onchange=()=>{applySettings();shown=PAGE;render()};
+$("size").onchange=()=>{applySettings();render()};
 $("auto").onchange=applySettings;
-
 $("limit").onchange=()=>{
- applySettings();
- shown=PAGE;
- render();
-
- log(
-  $("limit").value==="all"
-   ?"已切換全部新聞顯示模式。離線保存仍固定以最新200則為目標。"
-   :"已變更新聞保存數量。下次更新時依新設定整理新聞；離線保存仍固定最新200則。"
- );
+ applySettings();shown=PAGE;render();
+ log($("limit").value==="all"?"已切換全部新聞顯示模式。離線保存仍固定最新200則。":"已變更新聞保存設定。系統仍至少保留最新200則供離線保存。");
 };
 
-/* 網路狀態 */
 function setNet(){
  const on=navigator.onLine;
-
- $("status").textContent=on
-  ?"● 網路已連線"
-  :"○ 離線閱讀模式";
-
+ $("status").textContent=on?"● 網路已連線":"○ 離線閱讀模式";
  $("status").className="status"+(on?"":" offline");
-
- if(on){
-  $("status").textContent="● 網路已連線";
- }
 }
-
 window.addEventListener("online",()=>{
  setNet();
-
- if(db&&!busy&&!offlineBusy){
-  setTimeout(()=>{
-   if(navigator.onLine)autoSaveLatestOffline();
-  },1500);
- }
+ if(db&&!busy&&!offlineBusy)setTimeout(()=>{if(navigator.onLine)autoSaveLatestOffline()},1500);
 });
-
 window.addEventListener("offline",setNet);
+
+/* PWA：僅在HTTPS或localhost環境可註冊Service Worker */
+async function registerPWA(){
+ if(!("serviceWorker" in navigator))return;
+ const isSecure=location.protocol==="https:"||location.hostname==="localhost"||location.hostname==="127.0.0.1";
+ if(!isSecure){
+  log("目前是本機檔案預覽模式。新聞資料仍使用本機IndexedDB保存；若要安裝PWA及離線啟動，請部署到HTTPS網站。");
+  return;
+ }
+ try{
+  const reg=await navigator.serviceWorker.register("./sw.js");
+  await navigator.serviceWorker.ready;
+  console.log("NEXUS NEWS Service Worker ready",reg.scope);
+ }catch(e){
+  console.warn("Service Worker註冊失敗",e);
+ }
+}
 
 /* 啟動 */
 async function start(){
  loadSettings();
-
+ registerPWA();
  try{
   await dbInit();
-
   articles=await getAll();
-
   const fix=[];
-
   articles.forEach(a=>{
-   if(!Array.isArray(a.images)){
-    a.images=a.image?[a.image]:[];
-   }
-
-   if(!Array.isArray(a.offlineImages)){
-    a.offlineImages=[];
-   }
-
-   if(typeof a.offlineSaved!=="boolean"){
-    a.offlineSaved=false;
-   }
-
-   if(typeof a.offlineImageSaved!=="boolean"){
-    a.offlineImageSaved=a.offlineImages.some(x=>x&&x.blob);
-   }
-
+   if(!Array.isArray(a.images))a.images=a.image?[a.image]:[];
+   if(!Array.isArray(a.offlineImages))a.offlineImages=[];
+   if(typeof a.offlineSaved!=="boolean")a.offlineSaved=false;
+   if(typeof a.offlineImageSaved!=="boolean")a.offlineImageSaved=a.offlineImages.some(x=>x&&x.blob);
    const t=parseTime(a.pubDate);
-   if(t!==a.pubDate){
-    a.pubDate=t;
-    fix.push(a);
-   }
+   if(t!==a.pubDate){a.pubDate=t;fix.push(a)}
   });
-
-  if(fix.length){
-   putMany(fix).catch(()=>{});
-  }
-
-  setNet();
-  render();
-
+  if(fix.length)putMany(fix).catch(()=>{});
+  setNet();render();
   const offlineCount=articles.filter(a=>a.offlineSaved).length;
-  const photoCount=articles.filter(a=>
-   Array.isArray(a.offlineImages)&&
-   a.offlineImages.some(x=>x&&x.blob&&x.blob.size)
-  ).length;
-
-  $("offlineSummary").textContent=
-   "本機載入："+articles.length+
-   " 則新聞｜離線文字："+offlineCount+
-   " 則｜離線照片："+photoCount+" 張";
-
-  if(!articles.length&&navigator.onLine){
-   await syncNews();
-  }else{
-   log(
-    "本機新聞載入完成，共 "+articles.length+
-    " 則，依日期由新到舊排列。\n"+
-    "離線文字："+offlineCount+" 則\n"+
-    "離線照片："+photoCount+" 張"
-   );
-
-   /*
-    * 啟動後自動檢查最新200則照片是否已保存。
-    * 若有未下載照片且目前有網路，會自動補存。
-    */
-   if(navigator.onLine){
-    setTimeout(()=>{
-     if(!busy&&!offlineBusy)autoSaveLatestOffline();
-    },1800);
-   }
+  const photoCount=articles.filter(a=>Array.isArray(a.offlineImages)&&a.offlineImages.some(x=>x&&x.blob&&x.blob.size)).length;
+  $("offlineSummary").textContent="本機載入："+articles.length+" 則新聞｜離線文字："+offlineCount+" 則｜離線照片："+photoCount+" 張";
+  if(!articles.length&&navigator.onLine)await syncNews();
+  else{
+   log("本機新聞載入完成，共 "+articles.length+" 則，依日期由新到舊排列。\n離線文字："+offlineCount+" 則\n離線照片："+photoCount+" 張");
+   if(navigator.onLine)setTimeout(()=>{if(!busy&&!offlineBusy)autoSaveLatestOffline()},1800);
   }
-
- }catch(e){
-  log("資料庫啟動失敗："+e.message);
- }
+ }catch(e){log("資料庫啟動失敗："+e.message)}
 }
-
 start();
-
 </script>
 </body>
 </html>
