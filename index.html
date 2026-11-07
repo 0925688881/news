@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#080f20">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>NEXUS NEWS 8.2</title>
+<title>NEXUS NEWS 8.3</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23080f20'/%3E%3Ccircle cx='50' cy='50' r='34' fill='none' stroke='%2340dfdd' stroke-width='5'/%3E%3Cpath d='M17 50h66M50 16c-24 20-24 48 0 68M50 16c24 20 24 48 0 68' fill='none' stroke='%2340dfdd' stroke-width='3'/%3E%3C/svg%3E">
 <style>
 *{box-sizing:border-box}
@@ -52,13 +52,19 @@ button:disabled{opacity:.5}
 .card.open .body{display:block}
 .news-image{display:block;width:100%;max-height:440px;object-fit:contain;border-radius:12px;margin:12px 0;background:var(--deep);cursor:zoom-in}
 .desc{color:#e0e9f5;font-size:1.05em;line-height:1.95;white-space:pre-wrap;overflow-wrap:anywhere}
-.article-status{color:#70baff;font-size:14px;margin-top:12px}
+.article-status{color:#70baff;font-size:14px;margin-top:12px;line-height:1.7}
+.offline-status{color:#39d99b}
+.offline-fail{color:#ffcf65}
 .actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 .actions button{font-size:15px;padding:11px 13px;background:#203b5b}
 .actions .star{background:#463817;color:#ffcf65}
+.actions .offline-btn{background:#075b58;color:#b7ffef}
+.actions .source-btn{background:#174c83;color:#d5eaff}
 .empty{text-align:center;padding:36px 12px;color:var(--mute);background:var(--panel);border-radius:12px}
 .small{font-size:14px;color:var(--mute);line-height:1.8;margin-top:10px}
 .footer{text-align:center;color:#627a9a;font-size:13px;padding:18px}
+.progress-wrap{height:8px;background:#091529;border-radius:10px;overflow:hidden;margin-top:10px}
+#offlineProgress{height:100%;width:0;background:linear-gradient(90deg,#147ee9,#40dfdd);transition:width .25s}
 #topFloat{position:fixed;left:7px;top:52%;transform:translateY(-50%);z-index:9000;width:55px;height:67px;border-radius:30px;padding:5px 2px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:1px;background:linear-gradient(145deg,#087ef5,#073e80);border:2px solid #40dfdd;box-shadow:0 0 12px #147ee9,0 0 28px #147ee966;color:#fff;transition:opacity .25s,transform .25s}
 #topFloat .arrow{font-size:30px;line-height:32px}
 #topFloat small{font-size:11px}
@@ -97,7 +103,7 @@ body{padding:9px;padding-top:max(9px,env(safe-area-inset-top))}
   </svg>
   <div>
    <div class="logo">✦ NEXUS NEWS</div>
-   <div class="sub">NEWEST FIRST · 8.2</div>
+   <div class="sub">NEWEST FIRST · 8.3 OFFLINE EDITION</div>
   </div>
  </div>
  <div id="status" class="status">● 檢查網路中</div>
@@ -106,6 +112,8 @@ body{padding:9px;padding-top:max(9px,env(safe-area-inset-top))}
   <div class="stat"><strong id="favCount">0</strong><span>我的收藏</span></div>
   <div class="stat"><strong id="today">0</strong><span>今日新聞</span></div>
  </div>
+ <div class="small" id="offlineSummary">離線保存：準備檢查資料</div>
+ <div class="progress-wrap"><div id="offlineProgress"></div></div>
 </div>
 
 <div class="panel">
@@ -138,7 +146,13 @@ body{padding:9px;padding-top:max(9px,env(safe-area-inset-top))}
   <button id="test">🔧 測試來源</button>
   <button id="retry">↻ 重試全文</button>
  </div>
- <div class="small">所有來源依發布日期排序，最新的新聞永遠在最上面。收藏新聞不會自動刪除，支援本機保存及離線閱讀。</div>
+ <div class="small">
+  自動離線保存最新200則新聞及照片。新聞文字會先保存到本機，照片則會盡力下載保存；收藏新聞仍會保留。離線保存與一般新聞保存數量分開計算。
+ </div>
+ <div class="row">
+  <button id="offlineNow">📥 立即補存最新200則</button>
+  <button id="clearOffline">🗑 清除離線照片</button>
+ </div>
 </div>
 
 <div id="log"></div>
@@ -151,7 +165,7 @@ body{padding:9px;padding-top:max(9px,env(safe-area-inset-top))}
 
 <div id="news"><div class="empty">正在載入新聞...</div></div>
 <div id="more" style="display:none"><button class="primary" id="moreBtn">載入更多</button></div>
-<div class="footer">✦ NEXUS NEWS CENTER 8.2 ✦</div>
+<div class="footer">✦ NEXUS NEWS CENTER 8.3 · AUTOMATIC OFFLINE ✦</div>
 
 <button id="topFloat" aria-label="回到最上面"><span class="arrow">↑</span><small>回頂部</small></button>
 
@@ -162,12 +176,24 @@ body{padding:9px;padding-top:max(9px,env(safe-area-inset-top))}
 
 <script>
 "use strict";
-const DB="RobustChineseNewsDB",STORE="articles",FULL_LIMIT=100,PAGE=30,SETTINGS="nexusNewsSettings";
-let db,articles=[],filter="all",busy=false,enriching=false,shown=PAGE,autoTimer=null,renderTimer=null;
-const $=id=>document.getElementById(id);
 
+const DB="RobustChineseNewsDB";
+const STORE="articles";
+const FULL_LIMIT=100;
+const PAGE=30;
+const SETTINGS="nexusNewsSettings";
+const OFFLINE_LIMIT=200;
+const MAX_IMAGE_BYTES=8*1024*1024;
+
+let db,articles=[],filter="all",busy=false,enriching=false;
+let offlineBusy=false,shown=PAGE,autoTimer=null,renderTimer=null;
+let offlineObjectURLs=new Map();
+let searchTimer=null;
+
+const $=id=>document.getElementById(id);
 const G="https://news.google.com/rss";
 const Q="?hl=zh-TW&gl=TW&ceid=TW:zh-Hant";
+
 const SOURCES=[
  {name:"Google 繁體財經",type:"tw",url:G+"/search?q=%E8%B2%A1%E7%B6%93+OR+%E8%82%A1%E5%B8%82+OR+%E5%8F%B0%E8%82%A1+OR+%E7%BE%8E%E8%82%A1&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"},
  {name:"Google 繁體新聞",type:"tw",url:G+Q},
@@ -183,7 +209,7 @@ const SOURCES=[
  {name:"中時新聞網",type:"tw",url:"https://www.chinatimes.com/rss/realtimenews.xml"}
 ];
 
-/* 日期：最新在上。修正無時區字串(視為UTC)與未來時間 */
+/* 日期 */
 function parseTime(d){
  let t=NaN;
  if(typeof d==="number")t=d;
@@ -196,29 +222,57 @@ function parseTime(d){
  if(!Number.isFinite(t))return now;
  return Math.min(t,now+3600000);
 }
-const byDate=(a,b)=>$("sort").value==="old"?a.pubDate-b.pubDate:b.pubDate-a.pubDate;
+const byDate=(a,b)=>$("sort").value==="old"
+ ?a.pubDate-b.pubDate
+ :b.pubDate-a.pubDate;
 
 async function mapLimit(items,n,fn){
- const out=new Array(items.length);let i=0;
+ const out=new Array(items.length);
+ let i=0;
  await Promise.all(Array.from({length:n},async()=>{
-  while(i<items.length){const k=i++;out[k]=await fn(items[k]);}
+  while(i<items.length){
+   const k=i++;
+   try{out[k]=await fn(items[k])}
+   catch(e){out[k]=null}
+  }
  }));
  return out;
 }
-function log(s){$("log").style.display="block";$("log").textContent=s}
 
-const TABS=[["all","全部"],["unread","未讀"],["tw","繁體"],["cn","簡體"],["fav","收藏"]];
+function log(s){
+ $("log").style.display="block";
+ $("log").textContent=s;
+}
+
+function setProgress(done,total){
+ const pct=total?Math.round(done/total*100):0;
+ $("offlineProgress").style.width=pct+"%";
+}
+
+const TABS=[
+ ["all","全部"],
+ ["unread","未讀"],
+ ["tw","繁體"],
+ ["cn","簡體"],
+ ["fav","收藏"],
+ ["offline","離線"]
+];
+
 TABS.forEach(([k,t],i)=>{
  const b=document.createElement("button");
  b.className="tab"+(i?"":" active");
  b.textContent=t;
  b.onclick=()=>{
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
-  b.classList.add("active");filter=k;shown=PAGE;render();
+  b.classList.add("active");
+  filter=k;
+  shown=PAGE;
+  render();
  };
  $("tabs").appendChild(b);
 });
 
+/* 設定 */
 function loadSettings(){
  let s={};
  try{s=JSON.parse(localStorage.getItem(SETTINGS)||"{}")}catch(e){}
@@ -228,61 +282,111 @@ function loadSettings(){
  $("auto").value=s.auto||"0";
  applySettings();
 }
+
 function applySettings(){
- try{localStorage.setItem(SETTINGS,JSON.stringify({limit:$("limit").value,sort:$("sort").value,size:$("size").value,auto:$("auto").value}))}catch(e){}
+ try{
+  localStorage.setItem(SETTINGS,JSON.stringify({
+   limit:$("limit").value,
+   sort:$("sort").value,
+   size:$("size").value,
+   auto:$("auto").value
+  }));
+ }catch(e){}
  document.documentElement.style.setProperty("--fs",$("size").value+"px");
  clearInterval(autoTimer);
  const m=Number($("auto").value);
- if(m)autoTimer=setInterval(()=>{if(!busy&&!enriching&&navigator.onLine&&!document.hidden)syncNews()},m*60000);
+ if(m){
+  autoTimer=setInterval(()=>{
+   if(!busy&&!enriching&&!offlineBusy&&navigator.onLine&&!document.hidden)syncNews();
+  },m*60000);
+ }
 }
 
+/* IndexedDB：沿用8.2的資料庫與版本，不刪除舊資料 */
 function dbInit(){
  return new Promise((res,rej)=>{
   const r=indexedDB.open(DB,1);
-  r.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains(STORE))d.createObjectStore(STORE,{keyPath:"link"})};
-  r.onsuccess=e=>{db=e.target.result;res()};
+  r.onupgradeneeded=e=>{
+   const d=e.target.result;
+   if(!d.objectStoreNames.contains(STORE)){
+    d.createObjectStore(STORE,{keyPath:"link"});
+   }
+  };
+  r.onsuccess=e=>{
+   db=e.target.result;
+   db.onversionchange=()=>db.close();
+   res();
+  };
   r.onerror=()=>rej(r.error);
  });
 }
+
 function getAll(){
  return new Promise((res,rej)=>{
   const r=db.transaction(STORE,"readonly").objectStore(STORE).getAll();
-  r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);
- });
-}
-function putMany(list){
- return new Promise((res,rej)=>{
-  const tx=db.transaction(STORE,"readwrite"),s=tx.objectStore(STORE);
-  list.forEach(a=>{if(a.link)s.put(a)});
-  tx.oncomplete=res;tx.onerror=tx.onabort=()=>rej(tx.error);
- });
-}
-function removeMany(links){
- return new Promise((res,rej)=>{
-  const tx=db.transaction(STORE,"readwrite"),s=tx.objectStore(STORE);
-  links.forEach(l=>s.delete(l));
-  tx.oncomplete=res;tx.onerror=tx.onabort=()=>rej(tx.error);
+  r.onsuccess=()=>res(r.result||[]);
+  r.onerror=()=>rej(r.error);
  });
 }
 
+function putMany(list){
+ return new Promise((res,rej)=>{
+  if(!list.length){res();return}
+  const tx=db.transaction(STORE,"readwrite");
+  const s=tx.objectStore(STORE);
+  list.forEach(a=>{if(a&&a.link)s.put(a)});
+  tx.oncomplete=()=>res();
+  tx.onerror=tx.onabort=()=>rej(tx.error||new Error("資料保存失敗"));
+ });
+}
+
+function removeMany(links){
+ return new Promise((res,rej)=>{
+  if(!links.length){res();return}
+  const tx=db.transaction(STORE,"readwrite");
+  const s=tx.objectStore(STORE);
+  links.forEach(l=>s.delete(l));
+  tx.oncomplete=()=>res();
+  tx.onerror=tx.onabort=()=>rej(tx.error);
+ });
+}
+
+/* URL與文字處理 */
 function validURL(url){
  if(!url)return "";
- try{const u=new URL(String(url).trim());return ["https:","http:"].includes(u.protocol)?u.href:""}catch(e){return ""}
+ try{
+  const u=new URL(String(url).trim());
+  return ["https:","http:"].includes(u.protocol)?u.href:"";
+ }catch(e){return ""}
 }
+
 function stripURL(t){
- return String(t||"").replace(/https?:\/\/[^\s)）\]]+/gi,"").replace(/\(\s*\)|（\s*）|\[\s*\]/g,"").replace(/[ \t]{2,}/g," ").replace(/\n{3,}/g,"\n\n").trim();
+ return String(t||"")
+  .replace(/https?:\/\/[^\s)）\]]+/gi,"")
+  .replace(/\(\s*\)|（\s*）|\[\s*\]/g,"")
+  .replace(/[ \t]{2,}/g," ")
+  .replace(/\n{3,}/g,"\n\n")
+  .trim();
 }
+
 function clean(html){
  if(!html)return "";
  try{
   const d=new DOMParser().parseFromString(html,"text/html");
   d.querySelectorAll("script,style,iframe,object,form,svg,button,noscript").forEach(x=>x.remove());
   return stripURL((d.body.textContent||"").replace(/\s+/g," ")).slice(0,25000);
- }catch(e){return String(html).replace(/<[^>]*>/g," ").trim().slice(0,25000)}
+ }catch(e){
+  return String(html).replace(/<[^>]*>/g," ").trim().slice(0,25000);
+ }
 }
+
 function extractImages(html){
  if(!html)return [];
- const found=[],add=u=>{u=validURL(u);if(u&&!found.includes(u))found.push(u)};
+ const found=[];
+ const add=u=>{
+  u=validURL(u);
+  if(u&&!found.includes(u))found.push(u);
+ };
  try{
   const d=new DOMParser().parseFromString(html,"text/html");
   d.querySelectorAll("img").forEach(img=>{
@@ -295,14 +399,17 @@ function extractImages(html){
  }catch(e){}
  return found.filter(u=>!/logo|icon|avatar|sprite|pixel|tracking/i.test(u)).slice(0,15);
 }
+
 function getLocal(node,name){
  for(const c of Array.from(node.children||[])){
   if(c.localName===name||c.nodeName.endsWith(":"+name))return c.textContent.trim();
  }
  return "";
 }
+
 function allLocal(node,name){
- return Array.from(node.getElementsByTagName("*")).filter(x=>x.localName===name||x.nodeName.endsWith(":"+name));
+ return Array.from(node.getElementsByTagName("*"))
+  .filter(x=>x.localName===name||x.nodeName.endsWith(":"+name));
 }
 
 function makeArticle(title,link,date,description,source,image,images=[]){
@@ -311,18 +418,32 @@ function makeArticle(title,link,date,description,source,image,images=[]){
  if(!link)return null;
  const imgs=[image,...images].map(validURL).filter(Boolean);
  return {
-  title:String(title).trim(),link,pubDate:parseTime(date),
+  title:String(title).trim(),
+  link,
+  pubDate:parseTime(date),
   desc:clean(description)||"目前沒有提供新聞摘要。",
-  image:imgs[0]||"",images:[...new Set(imgs)].slice(0,15),
-  source:source.name,category:source.type,
-  favorite:false,read:false,full:false,failed:0,fullStatus:""
+  image:imgs[0]||"",
+  images:[...new Set(imgs)].slice(0,15),
+  source:source.name,
+  category:source.type,
+  favorite:false,
+  read:false,
+  full:false,
+  failed:0,
+  fullStatus:"",
+  offlineSaved:false,
+  offlineImages:[]
  };
 }
 
+/* RSS解析 */
 function parseXML(xml,source){
  const doc=new DOMParser().parseFromString(xml,"application/xml");
  if(doc.querySelector("parsererror"))throw Error("XML格式錯誤");
- const nodes=[...doc.getElementsByTagName("item"),...doc.getElementsByTagName("entry")];
+ const nodes=[
+  ...doc.getElementsByTagName("item"),
+  ...doc.getElementsByTagName("entry")
+ ];
  return nodes.map(n=>{
   const title=getLocal(n,"title");
   let link=getLocal(n,"link");
@@ -339,31 +460,51 @@ function parseXML(xml,source){
     if(u&&!images.includes(u))images.push(u);
    });
   });
-  extractImages(desc).forEach(u=>{if(!images.includes(u))images.push(u)});
+  extractImages(desc).forEach(u=>{
+   if(!images.includes(u))images.push(u);
+  });
   return makeArticle(title,link,date,desc,source,images[0]||"",images);
  }).filter(Boolean);
 }
 
 async function request(url,headers={},timeout=25000){
- const c=new AbortController(),t=setTimeout(()=>c.abort(),timeout);
+ const c=new AbortController();
+ const t=setTimeout(()=>c.abort(),timeout);
  try{
-  const r=await fetch(url,{signal:c.signal,cache:"no-store",headers});
+  const r=await fetch(url,{
+   signal:c.signal,
+   cache:"no-store",
+   headers
+  });
   if(!r.ok)throw Error("HTTP "+r.status);
   return await r.text();
  }catch(e){
   throw Error(e.name==="AbortError"?"逾時":e.message);
- }finally{clearTimeout(t)}
+ }finally{
+  clearTimeout(t);
+ }
 }
 
 async function viaJSON(source){
- const data=JSON.parse(await request("https://api.rss2json.com/v1/api.json?rss_url="+encodeURIComponent(source.url)));
- if(data.status!=="ok"||!Array.isArray(data.items))throw Error(data.message||"RSS2JSON錯誤");
+ const data=JSON.parse(await request(
+  "https://api.rss2json.com/v1/api.json?rss_url="+encodeURIComponent(source.url)
+ ));
+ if(data.status!=="ok"||!Array.isArray(data.items)){
+  throw Error(data.message||"RSS2JSON錯誤");
+ }
  return data.items.map(x=>{
   const html=x.content||x.description||"";
-  const imgs=[x.thumbnail,x.enclosure&&x.enclosure.link,x.enclosure&&x.enclosure.url,x.image,...extractImages(html)].map(validURL).filter(Boolean);
+  const imgs=[
+   x.thumbnail,
+   x.enclosure&&x.enclosure.link,
+   x.enclosure&&x.enclosure.url,
+   x.image,
+   ...extractImages(html)
+  ].map(validURL).filter(Boolean);
   return makeArticle(x.title,x.link,x.pubDate,html,source,imgs[0]||"",imgs);
  }).filter(Boolean);
 }
+
 function proxyFn(label,mk,json){
  const f=async source=>{
   let xml=await request(mk(encodeURIComponent(source.url)));
@@ -371,9 +512,12 @@ function proxyFn(label,mk,json){
   if(!xml.includes("<")||xml.length<100)throw Error("沒有有效XML");
   return parseXML(xml,source);
  };
- f.label=label;return f;
+ f.label=label;
+ return f;
 }
+
 viaJSON.label="rss2json";
+
 const PROXIES=[
  viaJSON,
  proxyFn("allorigins",u=>"https://api.allorigins.win/raw?url="+u),
@@ -382,6 +526,7 @@ const PROXIES=[
  proxyFn("codetabs",u=>"https://api.codetabs.com/v1/proxy?quest="+u),
  proxyFn("thingproxy",u=>"https://thingproxy.freeboard.io/fetch/"+decodeURIComponent(u))
 ];
+
 async function fetchSource(source){
  const errors=[];
  for(const fn of PROXIES){
@@ -389,17 +534,25 @@ async function fetchSource(source){
    const list=await fn(source);
    if(list.length)return {ok:true,list};
    errors.push(fn.label+":沒有新聞");
-  }catch(e){errors.push(fn.label+":"+e.message)}
+  }catch(e){
+   errors.push(fn.label+":"+e.message);
+  }
  }
  return {ok:false,error:"\n   "+errors.join("\n   ")};
 }
 
+/* 全文擷取 */
 function extractMarkdownImages(text){
- const images=[],re=/!\[[^\]]*\]\((https?:\/\/[^)\s]+)(?:\s+"[^"]*")?\)/gi;
+ const images=[];
+ const re=/!\[[^\]]*\]\((https?:\/\/[^)\s]+)(?:\s+"[^"]*")?\)/gi;
  let m;
- while((m=re.exec(text))!==null){const u=validURL(m[1]);if(u&&!images.includes(u))images.push(u)}
+ while((m=re.exec(text))!==null){
+  const u=validURL(m[1]);
+  if(u&&!images.includes(u))images.push(u);
+ }
  return images;
 }
+
 function cleanReaderText(text){
  return stripURL(String(text||"")
   .replace(/^(Title|URL Source|Published Time|Markdown Content):.*$/gim,"")
@@ -407,36 +560,61 @@ function cleanReaderText(text){
   .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,"$1")
   .replace(/^#{1,6}\s*/gm,"")
   .replace(/^\s*[-*_]{3,}\s*$/gm,"")
-  .replace(/\n{3,}/g,"\n\n")).slice(0,25000);
+  .replace(/\n{3,}/g,"\n\n")
+ ).slice(0,25000);
 }
+
 async function readFullArticle(a){
- const text=await request("https://r.jina.ai/"+a.link,{"Accept":"text/plain","X-Respond-With":"markdown","X-Retain-Images":"all","X-Timeout":"25"},35000);
+ const text=await request(
+  "https://r.jina.ai/"+a.link,
+  {
+   "Accept":"text/plain",
+   "X-Respond-With":"markdown",
+   "X-Retain-Images":"all",
+   "X-Timeout":"25"
+  },
+  35000
+ );
  if(!text||text.length<150)throw Error("擷取內容太短");
  const content=cleanReaderText(text);
  if(content.length<150)throw Error("沒有取得有效內文");
  const images=extractMarkdownImages(text).filter(u=>!/logo|icon|avatar|sprite|pixel/i.test(u));
- return {desc:content,image:images[0]||a.image,images};
+ return {
+  desc:content,
+  image:images[0]||a.image,
+  images
+ };
 }
 
 function scheduleRender(){
  if(renderTimer)return;
- renderTimer=setTimeout(()=>{renderTimer=null;render()},700);
+ renderTimer=setTimeout(()=>{
+  renderTimer=null;
+  render();
+ },700);
 }
 
 async function enrichArticles(list,force=false){
  if(enriching||!navigator.onLine)return;
  enriching=true;
- /* 最新的新聞優先擷取全文 */
- const targets=list.filter(a=>!a.full&&a.link&&(force||!a.failed||a.failed<2))
-  .sort((a,b)=>b.pubDate-a.pubDate).slice(0,FULL_LIMIT);
+
+ const targets=list
+  .filter(a=>!a.full&&a.link&&(force||!a.failed||a.failed<2))
+  .sort((a,b)=>b.pubDate-a.pubDate)
+  .slice(0,FULL_LIMIT);
+
  let ok=0,fail=0,done=0,idx=0;
  log("正在擷取最新新聞全文及照片...\n準備處理 "+targets.length+" 則");
+
  async function worker(){
   while(idx<targets.length){
    const a=targets[idx++];
    try{
     const r=await readFullArticle(a);
-    a.desc=r.desc;a.full=true;a.failed=0;a.fullStatus="✓ 已取得完整內文";
+    a.desc=r.desc;
+    a.full=true;
+    a.failed=0;
+    a.fullStatus="✓ 已取得完整內文";
     if(r.image)a.image=r.image;
     a.images=[...new Set([...(a.images||[]),...r.images])].slice(0,15);
     ok++;
@@ -451,63 +629,119 @@ async function enrichArticles(list,force=false){
    log("全文擷取進度："+done+"/"+targets.length+"\n成功："+ok+"　失敗："+fail);
   }
  }
+
  try{
   await Promise.all([worker(),worker(),worker()]);
-  log("全文擷取完成！\n成功："+ok+" 則　失敗："+fail+" 則\n未取得全文的新聞仍保留原有摘要。");
+  log("全文擷取完成！\n成功："+ok+" 則　失敗："+fail+" 則\n接著自動保存最新200則新聞及照片。");
  }finally{
   enriching=false;
   render();
  }
 }
 
+/* 合併新聞：保留收藏、已讀、全文及離線照片 */
 function mergeArticles(incoming){
  const map=new Map(articles.map(a=>[a.link,a]));
+
  incoming.forEach(a=>{
   const old=map.get(a.link);
+
   if(old){
    map.set(a.link,{
+    ...a,
     ...old,
-    pubDate:Math.min(old.pubDate,a.pubDate),
+    pubDate:Math.max(old.pubDate||0,a.pubDate||0),
     image:old.image||a.image,
     images:[...new Set([...(old.images||[]),...(a.images||[])])].slice(0,15),
-    desc:old.full?old.desc:(a.desc||old.desc)
+    desc:old.full?old.desc:(a.desc||old.desc),
+    favorite:!!(old.favorite||a.favorite),
+    read:!!old.read,
+    full:!!old.full,
+    failed:old.full?0:(old.failed||0),
+    fullStatus:old.fullStatus||a.fullStatus||"",
+    offlineSaved:!!old.offlineSaved,
+    offlineImages:Array.isArray(old.offlineImages)?old.offlineImages:[]
    });
-  }else map.set(a.link,a);
+  }else{
+   map.set(a.link,a);
+  }
  });
+
  return Array.from(map.values()).sort((a,b)=>b.pubDate-a.pubDate);
 }
 
+/* 更新RSS */
 async function syncNews(){
  if(busy)return;
- if(!navigator.onLine){alert("請先連接網路");return}
+ if(!navigator.onLine){
+  alert("目前沒有網路，請連線後再更新新聞。");
+  return;
+ }
+
  busy=true;
  $("sync").disabled=true;
  $("sync").textContent="⏳ 正在抓取...";
+
  try{
-  log("正在連接 "+SOURCES.length+" 個來源...");
-  const results=await mapLimit(SOURCES,4,s=>fetchSource(s).then(r=>({s,r})));
+  log("正在連接 "+SOURCES.length+" 個新聞來源...");
+
+  const results=await mapLimit(SOURCES,4,s=>
+   fetchSource(s).then(r=>({s,r}))
+  );
+
   const incoming=[],report=[];
+
   results.forEach(({s,r})=>{
-   if(r.ok){incoming.push(...r.list);report.push("✓ "+s.name+"："+r.list.length+"則")}
-   else report.push("✗ "+s.name+"："+r.error);
+   if(r&&r.ok){
+    incoming.push(...r.list);
+    report.push("✓ "+s.name+"："+r.list.length+"則");
+   }else{
+    report.push("✗ "+s.name+"："+(r?r.error:"連線失敗"));
+   }
   });
+
   if(!incoming.length){
    log("所有來源均無法取得。\n\n"+report.join("\n")+"\n\n原有資料沒有刪除。");
    return;
   }
+
   const all=mergeArticles(incoming);
-  const limit=$("limit").value,keep=[],drop=[];
+  const limit=$("limit").value;
+  const keep=[],drop=[];
   let n=0;
+
   all.forEach(a=>{
-   if(a.favorite||limit==="all"||n<Number(limit)){keep.push(a);if(!a.favorite)n++}
-   else drop.push(a);
+   if(a.favorite||limit==="all"||n<Number(limit)){
+    keep.push(a);
+    if(!a.favorite)n++;
+   }else{
+    drop.push(a);
+   }
   });
+
   articles=keep;
   await putMany(articles);
-  if(drop.length)await removeMany(drop.map(a=>a.link));
+
+  if(drop.length){
+   await removeMany(drop.map(a=>a.link));
+  }
+
   render();
-  log("RSS更新完成！\n\n"+report.join("\n")+"\n\n本次取得："+incoming.length+"則\n保存："+articles.length+"則\n開始擷取全文及照片...");
+
+  log(
+   "RSS更新完成！\n\n"+
+   report.join("\n")+
+   "\n\n本次取得："+incoming.length+"則"+
+   "\n保存："+articles.length+"則"+
+   "\n開始擷取全文..."
+  );
+
   await enrichArticles(articles);
+
+  if(!offlineBusy&&navigator.onLine){
+   await autoSaveLatestOffline();
+  }
+
  }catch(e){
   log("更新錯誤："+e.message+"\n原有新聞仍保留。");
  }finally{
@@ -517,15 +751,27 @@ async function syncNews(){
  }
 }
 
+/* 測試來源 */
 async function testSources(){
  if(busy)return;
- if(!navigator.onLine){alert("請先連接網路");return}
+ if(!navigator.onLine){
+  alert("請先連接網路");
+  return;
+ }
+
  busy=true;
  $("test").disabled=true;
  $("test").textContent="測試中...";
+
  try{
   log("正在測試來源...");
-  const res=await mapLimit(SOURCES,4,s=>fetchSource(s).then(r=>r.ok?"✓ "+s.name+"："+r.list.length+"則":"✗ "+s.name+"："+r.error));
+  const res=await mapLimit(SOURCES,4,s=>
+   fetchSource(s).then(r=>
+    r&&r.ok
+     ?"✓ "+s.name+"："+r.list.length+"則"
+     :"✗ "+s.name+"："+(r?r.error:"連線失敗")
+   )
+  );
   log("新聞來源測試結果：\n\n"+res.join("\n"));
  }finally{
   busy=false;
@@ -534,16 +780,336 @@ async function testSources(){
  }
 }
 
+/* 離線照片處理 */
+
+/* 取得照片候選網址，原圖優先，其次圖片代理 */
+function getImageCandidates(a){
+ const result=[];
+
+ [a.image,...(a.images||[])].forEach(u=>{
+  u=validURL(u);
+  if(!u)return;
+
+  if(!result.includes(u))result.push(u);
+
+  try{
+   const p=new URL(u);
+   const proxy="https://images.weserv.nl/?url="+
+    encodeURIComponent(p.host+p.pathname+p.search);
+
+   if(!result.includes(proxy))result.push(proxy);
+  }catch(e){}
+ });
+
+ return result;
+}
+
+/* 下載照片 Blob。跨網域禁止時會嘗試下一個來源 */
+async function fetchImageBlob(url){
+ const c=new AbortController();
+ const timer=setTimeout(()=>c.abort(),18000);
+
+ try{
+  const r=await fetch(url,{
+   method:"GET",
+   mode:"cors",
+   cache:"force-cache",
+   signal:c.signal
+  });
+
+  if(!r.ok)throw Error("HTTP "+r.status);
+
+  const type=(r.headers.get("content-type")||"").toLowerCase();
+  if(type&&!type.startsWith("image/")){
+   throw Error("回傳內容不是圖片");
+  }
+
+  const blob=await r.blob();
+
+  if(!blob||!blob.size)throw Error("圖片內容為空");
+  if(blob.size>MAX_IMAGE_BYTES)throw Error("圖片超過8MB");
+
+  if(blob.type&&!blob.type.startsWith("image/")){
+   throw Error("圖片格式不支援");
+  }
+
+  return blob;
+
+ }catch(e){
+  throw Error(e.name==="AbortError"?"照片下載逾時":e.message);
+ }finally{
+  clearTimeout(timer);
+ }
+}
+
+/* 只保存每篇新聞一張主照片，控制容量 */
+async function saveArticlePhoto(a){
+ if(!navigator.onLine)throw Error("目前離線");
+
+ if(Array.isArray(a.offlineImages)&&a.offlineImages.some(x=>x&&x.blob&&x.blob.size)){
+  return {ok:true,existing:true};
+ }
+
+ const candidates=getImageCandidates(a);
+ if(!candidates.length)throw Error("沒有可下載的照片網址");
+
+ const errors=[];
+
+ for(const url of candidates.slice(0,6)){
+  try{
+   const blob=await fetchImageBlob(url);
+
+   a.offlineImages=[{
+    url:url,
+    blob:blob,
+    savedAt:Date.now()
+   }];
+
+   a.offlineImageSaved=true;
+   a.offlineImageError="";
+   await putMany([a]);
+
+   return {ok:true,size:blob.size,url};
+  }catch(e){
+   errors.push(e.message);
+  }
+ }
+
+ a.offlineImageSaved=false;
+ a.offlineImageError=errors.join(" / ").slice(0,300);
+ await putMany([a]).catch(()=>{});
+
+ throw Error(a.offlineImageError||"照片下載失敗");
+}
+
+/* 自動保存最新200則新聞文字及照片 */
+async function autoSaveLatestOffline(){
+ if(offlineBusy||!db)return;
+ offlineBusy=true;
+
+ try{
+  const sorted=[...articles].sort((a,b)=>b.pubDate-a.pubDate);
+  const targets=sorted.slice(0,OFFLINE_LIMIT);
+
+  if(!targets.length){
+   $("offlineSummary").textContent="離線保存：目前沒有新聞";
+   setProgress(0,0);
+   return;
+  }
+
+  /*
+   * 先將最新200則的文字與離線標記保存。
+   * 新聞文字本身已在IndexedDB內，不需要再次下載。
+   */
+  targets.forEach(a=>{
+   a.offlineSaved=true;
+   if(!Array.isArray(a.offlineImages))a.offlineImages=[];
+  });
+
+  await putMany(targets);
+
+  /*
+   * 超出最新200則的新聞清除離線照片及離線標記，
+   * 不會刪除新聞本身，也不會刪除收藏。
+   */
+  const targetLinks=new Set(targets.map(a=>a.link));
+  const oldOffline=articles.filter(a=>
+   a.offlineSaved&&!targetLinks.has(a.link)
+  );
+
+  for(const a of oldOffline){
+   a.offlineSaved=false;
+   a.offlineImages=[];
+   a.offlineImageSaved=false;
+   a.offlineImageError="";
+  }
+
+  if(oldOffline.length){
+   await putMany(oldOffline);
+  }
+
+  const needPhotos=targets.filter(a=>
+   !(
+    Array.isArray(a.offlineImages)&&
+    a.offlineImages.some(x=>x&&x.blob&&x.blob.size)
+   )
+  );
+
+  let done=0,success=0,failed=0;
+  let bytes=0;
+
+  const already=targets.length-needPhotos.length;
+
+  $("offlineSummary").textContent=
+   "離線保存：文字 "+targets.length+" 則，照片準備下載 "+needPhotos.length+" 張";
+
+  setProgress(already,targets.length);
+
+  if(!navigator.onLine){
+   $("offlineSummary").textContent=
+    "離線保存：新聞文字 "+targets.length+" 則；目前沒有網路，照片待連線後下載";
+   return;
+  }
+
+  let index=0;
+
+  async function photoWorker(){
+   while(index<needPhotos.length){
+    const a=needPhotos[index++];
+
+    try{
+     const result=await saveArticlePhoto(a);
+     if(result.ok){
+      success++;
+      if(result.size)bytes+=result.size;
+     }
+    }catch(e){
+     failed++;
+     a.offlineImageError=e.message;
+     await putMany([a]).catch(()=>{});
+    }
+
+    done++;
+    setProgress(already+done,targets.length);
+
+    $("offlineSummary").textContent=
+     "離線保存進度："+(already+done)+"/"+targets.length+
+     "｜照片成功："+(already+success)+
+     "｜照片失敗："+failed;
+
+    if(done%5===0)scheduleRender();
+   }
+  }
+
+  /* 兩張照片同時下載，避免對網站造成過大負擔 */
+  await Promise.all([photoWorker(),photoWorker()]);
+
+  const imageCount=targets.filter(a=>
+   Array.isArray(a.offlineImages)&&
+   a.offlineImages.some(x=>x&&x.blob&&x.blob.size)
+  ).length;
+
+  const mb=(bytes/1024/1024).toFixed(1);
+
+  $("offlineSummary").textContent=
+   "離線保存完成：新聞文字 "+targets.length+
+   " 則｜照片已保存 "+imageCount+
+   " 張｜本次下載約 "+mb+" MB";
+
+  log(
+   "最新200則離線保存作業完成。\n\n"+
+   "新聞文字：已保存 "+targets.length+" 則\n"+
+   "照片成功：目前共 "+imageCount+" 張\n"+
+   "本次照片下載：約 "+mb+" MB\n"+
+   "照片失敗："+failed+" 張\n\n"+
+   "照片失敗的新聞仍可離線閱讀文字摘要或已取得的全文。"
+  );
+
+ }catch(e){
+  $("offlineSummary").textContent="離線保存遇到問題："+e.message;
+  log("離線保存錯誤："+e.message);
+ }finally{
+  offlineBusy=false;
+  updateStats();
+  render();
+ }
+}
+
+/* 手動立即補存 */
+async function manualOfflineSave(){
+ if(offlineBusy){
+  alert("離線保存正在進行，請稍候。");
+  return;
+ }
+ if(!navigator.onLine){
+  alert("目前沒有網路。已保存的新聞仍可離線閱讀，照片需要連線才能下載。");
+  return;
+ }
+ await autoSaveLatestOffline();
+}
+
+/* 清除離線照片，但保留新聞文字 */
+async function clearOfflinePhotos(){
+ if(!confirm("確定清除所有離線照片？\n新聞文字、收藏及已讀資料都會保留。"))return;
+
+ try{
+  const targets=articles.filter(a=>
+   Array.isArray(a.offlineImages)&&a.offlineImages.length
+  );
+
+  targets.forEach(a=>{
+   a.offlineImages=[];
+   a.offlineImageSaved=false;
+   a.offlineImageError="";
+  });
+
+  await putMany(targets);
+
+  offlineObjectURLs.forEach(url=>{
+   try{URL.revokeObjectURL(url)}catch(e){}
+  });
+  offlineObjectURLs.clear();
+
+  $("offlineSummary").textContent=
+   "離線照片已清除；最新200則新聞文字仍保留。";
+
+  log("已清除 "+targets.length+" 則新聞的離線照片。\n新聞文字、收藏及已讀資料均未刪除。");
+
+  render();
+
+ }catch(e){
+  alert("清除失敗："+e.message);
+ }
+}
+
+/* 離線圖片 Blob 轉成可顯示網址 */
+function getOfflineImageURL(a){
+ if(!Array.isArray(a.offlineImages))return "";
+
+ const item=a.offlineImages.find(x=>x&&x.blob&&x.blob.size);
+ if(!item)return "";
+
+ if(offlineObjectURLs.has(a.link)){
+  return offlineObjectURLs.get(a.link);
+ }
+
+ try{
+  const url=URL.createObjectURL(item.blob);
+  offlineObjectURLs.set(a.link,url);
+  return url;
+ }catch(e){
+  return "";
+ }
+}
+
+/* 顯示統計 */
 function updateStats(){
  $("total").textContent=articles.length;
  $("favCount").textContent=articles.filter(a=>a.favorite).length;
- const d=new Date(),start=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
- $("today").textContent=articles.filter(a=>a.pubDate>=start).length;
+
+ const d=new Date();
+ const start=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
+
+ $("today").textContent=
+  articles.filter(a=>a.pubDate>=start).length;
+
+ const offlineCount=articles.filter(a=>a.offlineSaved).length;
+ const photoCount=articles.filter(a=>
+  Array.isArray(a.offlineImages)&&
+  a.offlineImages.some(x=>x&&x.blob&&x.blob.size)
+ ).length;
+
+ if(!$("offlineSummary").textContent.includes("進度：")){
+  $("offlineSummary").textContent=
+   "離線資料：新聞文字 "+offlineCount+" 則｜離線照片 "+photoCount+" 張";
+ }
 }
+
 function dateText(t){
  const d=new Date(t);
  return isNaN(d.getTime())?"日期不明":d.toLocaleString("zh-TW");
 }
+
 function el(tag,cls,txt){
  const x=document.createElement(tag);
  if(cls)x.className=cls;
@@ -551,187 +1117,482 @@ function el(tag,cls,txt){
  return x;
 }
 
+/* 照片放大 */
 function showPhoto(url){
  const s=validURL(url);
  if(!s)return;
  $("largePhoto").src=s;
  $("photoModal").style.display="flex";
 }
+
 function closePhoto(){
  $("photoModal").style.display="none";
  $("largePhoto").removeAttribute("src");
 }
+
 $("closePhoto").onclick=closePhoto;
-$("photoModal").onclick=e=>{if(e.target===$("photoModal"))closePhoto()};
+$("photoModal").onclick=e=>{
+ if(e.target===$("photoModal"))closePhoto();
+};
 
-async function persist(a){try{await putMany([a])}catch(e){}}
+async function persist(a){
+ try{await putMany([a])}catch(e){}
+}
 
-function getImageCandidates(a){
+/* 圖片候選網址 */
+function getDisplayImages(a){
+ const offline=getOfflineImageURL(a);
+ if(offline)return [offline];
+
  const result=[];
  [a.image,...(a.images||[])].forEach(u=>{
   u=validURL(u);
   if(!u)return;
+
   if(!result.includes(u))result.push(u);
+
   try{
    const p=new URL(u);
-   const proxy="https://images.weserv.nl/?url="+encodeURIComponent(p.host+p.pathname+p.search);
+   const proxy="https://images.weserv.nl/?url="+
+    encodeURIComponent(p.host+p.pathname+p.search);
    if(!result.includes(proxy))result.push(proxy);
   }catch(e){}
  });
+
  return result;
 }
 
+/* 建立新聞卡片 */
 function buildCard(a){
  const isGoogle=(a.source||"").startsWith("Google");
  const isFinance=(a.source||"").includes("財經");
- const card=el("article","card open"+(a.read?" read":"")+(isGoogle?" google":""));
+
+ const card=el(
+  "article",
+  "card open"+(a.read?" read":"")+(isGoogle?" google":"")
+ );
+
  const meta=el("div","meta");
  const left=el("span","tag",a.source);
  if(isFinance)left.classList.add("finance-label");
- meta.append(left,el("span","",dateText(a.pubDate)));
 
- const headline=el("div","headline-row"),titleBox=el("div","headline-title"),h3=el("h3","",a.title);
- const imgs=getImageCandidates(a);
+ meta.append(
+  left,
+  el("span","",dateText(a.pubDate))
+ );
+
+ const headline=el("div","headline-row");
+ const titleBox=el("div","headline-title");
+ const h3=el("h3","",a.title);
+ const imgs=getDisplayImages(a);
+
  if(imgs.length){
   const img=el("img","news-thumb");
   let i=0;
-  img.alt=a.title;img.loading="lazy";img.decoding="async";img.referrerPolicy="no-referrer";
+
+  img.alt=a.title;
+  img.loading="lazy";
+  img.decoding="async";
+  img.referrerPolicy="no-referrer";
+
   img.onerror=()=>{
    i++;
-   if(i<imgs.length)img.src=imgs[i];
-   else{const p=el("div","thumb-placeholder","✦");img.replaceWith(p)}
+   if(i<imgs.length){
+    img.src=imgs[i];
+   }else{
+    const p=el("div","thumb-placeholder","✦");
+    img.replaceWith(p);
+   }
   };
+
   img.onclick=()=>showPhoto(img.src);
   img.src=imgs[0];
   headline.appendChild(img);
- }else headline.appendChild(el("div","thumb-placeholder","✦"));
+
+ }else{
+  headline.appendChild(el("div","thumb-placeholder","✦"));
+ }
+
  titleBox.appendChild(h3);
  headline.appendChild(titleBox);
 
  const body=el("div","body");
  card.append(meta,headline,body);
+
  h3.onclick=()=>{
   card.classList.toggle("open");
-  if(card.classList.contains("open"))card.scrollIntoView({block:"nearest",behavior:"smooth"});
+  if(card.classList.contains("open")){
+   card.scrollIntoView({block:"nearest",behavior:"smooth"});
+  }
  };
 
  if(imgs.length){
   const img=el("img","news-image");
   let i=0;
-  img.alt=a.title;img.loading="lazy";img.decoding="async";img.referrerPolicy="no-referrer";
-  img.onerror=()=>{i++;if(i<imgs.length)img.src=imgs[i];else img.remove()};
+
+  img.alt=a.title;
+  img.loading="lazy";
+  img.decoding="async";
+  img.referrerPolicy="no-referrer";
+
+  img.onerror=()=>{
+   i++;
+   if(i<imgs.length){
+    img.src=imgs[i];
+   }else{
+    img.remove();
+   }
+  };
+
   img.onclick=()=>showPhoto(img.src);
   img.src=imgs[0];
   body.appendChild(img);
  }
- body.appendChild(el("div","desc",stripURL(a.desc)||"目前沒有可顯示的內文。"));
- if((a.fullStatus||"").startsWith("未取得"))body.appendChild(el("div","article-status",a.fullStatus));
+
+ body.appendChild(
+  el("div","desc",stripURL(a.desc)||"目前沒有可顯示的內文。")
+ );
+
+ if((a.fullStatus||"").startsWith("未取得")){
+  body.appendChild(el("div","article-status",a.fullStatus));
+ }
+
+ /* 離線狀態 */
+ if(a.offlineSaved){
+  const hasPhoto=Array.isArray(a.offlineImages)&&
+   a.offlineImages.some(x=>x&&x.blob&&x.blob.size);
+
+  body.appendChild(el(
+   "div",
+   "article-status offline-status",
+   hasPhoto
+    ?"✓ 已保存離線閱讀（文字＋照片）"
+    :"✓ 已保存離線閱讀（文字）"
+  ));
+
+  if(!hasPhoto&&a.offlineImageError){
+   body.appendChild(el(
+    "div",
+    "article-status offline-fail",
+    "照片尚未成功保存："+a.offlineImageError
+   ));
+  }
+ }
 
  const actions=el("div","actions");
+
+ /* 已讀 */
  const toggle=el("button","",a.read?"標為未讀":"標為已讀");
+
  toggle.onclick=()=>{
   a.read=!a.read;
   card.classList.toggle("read",a.read);
   toggle.textContent=a.read?"標為未讀":"標為已讀";
-  persist(a);updateStats();
+  persist(a);
+  updateStats();
   if(filter==="unread")render();
  };
+
+ /* 收藏 */
  const star=el("button","star",a.favorite?"★ 已收藏":"☆ 收藏");
+
  star.onclick=()=>{
   a.favorite=!a.favorite;
   star.textContent=a.favorite?"★ 已收藏":"☆ 收藏";
-  persist(a);updateStats();
+  persist(a);
+  updateStats();
   if(filter==="fav")render();
  };
+
  actions.append(toggle,star);
+
+ /* 閱讀原文 */
+ const sourceBtn=el("button","source-btn","↗ 閱讀原文");
+ sourceBtn.onclick=()=>{
+  const url=validURL(a.link);
+  if(url){
+   const win=window.open(url,"_blank","noopener");
+   if(!win){
+    location.href=url;
+   }
+  }
+ };
+ actions.appendChild(sourceBtn);
+
+ /* 離線保存狀態按鈕 */
+ const offlineBtn=el(
+  "button",
+  "offline-btn",
+  a.offlineSaved?"✓ 已列入離線":"📥 保存離線"
+ );
+
+ offlineBtn.onclick=async()=>{
+  if(!navigator.onLine){
+   alert("新聞文字已經可以離線閱讀；若要下載照片，請先連接網路。");
+   return;
+  }
+
+  offlineBtn.disabled=true;
+  offlineBtn.textContent="下載中...";
+
+  try{
+   a.offlineSaved=true;
+   await persist(a);
+
+   await saveArticlePhoto(a);
+
+   offlineBtn.textContent="✓ 離線完成";
+   render();
+
+  }catch(e){
+   a.offlineSaved=true;
+   await persist(a);
+   offlineBtn.textContent="文字已保存";
+   alert("新聞文字已保存，但照片下載失敗：\n"+e.message);
+   render();
+
+  }finally{
+   offlineBtn.disabled=false;
+  }
+ };
+
+ actions.appendChild(offlineBtn);
+
+ /* 分享 */
  if(navigator.share){
   const sh=el("button","","分享");
-  sh.onclick=()=>navigator.share({title:a.title,url:a.link}).catch(()=>{});
+  sh.onclick=()=>navigator.share({
+   title:a.title,
+   url:a.link
+  }).catch(()=>{});
   actions.append(sh);
  }
+
  body.appendChild(actions);
  return card;
 }
 
-/* 顯示：純依日期排序，最新在最上 */
+/* 顯示：依日期排序 */
 function render(){
  updateStats();
- const box=$("news"),kw=$("search").value.trim().toLowerCase();
+
+ const box=$("news");
+ const kw=$("search").value.trim().toLowerCase();
+
  const list=articles.filter(a=>{
   if(filter==="tw"&&a.category!=="tw")return false;
   if(filter==="cn"&&a.category!=="cn")return false;
   if(filter==="fav"&&!a.favorite)return false;
   if(filter==="unread"&&a.read)return false;
-  return !kw||(a.title+" "+a.desc+" "+a.source).toLowerCase().includes(kw);
+  if(filter==="offline"&&!a.offlineSaved)return false;
+
+  return !kw||
+   (a.title+" "+a.desc+" "+a.source).toLowerCase().includes(kw);
  }).sort(byDate);
 
  box.replaceChildren();
+
  if(!list.length){
-  box.appendChild(el("div","empty","目前沒有符合條件的新聞"));
+  const msg=filter==="offline"
+   ?"目前沒有離線新聞。連線後按「開始更新新聞」，系統會自動保存最新200則。"
+   :"目前沒有符合條件的新聞";
+
+  box.appendChild(el("div","empty",msg));
   $("more").style.display="none";
   return;
  }
+
  const showAll=$("limit").value==="all";
  const count=showAll?list.length:shown;
  const frag=document.createDocumentFragment();
- list.slice(0,count).forEach(a=>frag.appendChild(buildCard(a)));
+
+ list.slice(0,count).forEach(a=>{
+  frag.appendChild(buildCard(a));
+ });
+
  box.appendChild(frag);
+
  const more=!showAll&&list.length>shown;
  $("more").style.display=more?"block":"none";
- if(more)$("moreBtn").textContent="載入更多（還有 "+(list.length-shown)+" 則）";
+
+ if(more){
+  $("moreBtn").textContent="載入更多（還有 "+(list.length-shown)+" 則）";
+ }
 }
 
+/* 回頂部 */
 const topFloat=$("topFloat");
-window.addEventListener("scroll",()=>{topFloat.classList.toggle("hidden",window.scrollY<180)},{passive:true});
-topFloat.onclick=()=>window.scrollTo({top:0,behavior:"smooth"});
 
+window.addEventListener("scroll",()=>{
+ topFloat.classList.toggle("hidden",window.scrollY<180);
+},{passive:true});
+
+topFloat.onclick=()=>window.scrollTo({
+ top:0,
+ behavior:"smooth"
+});
+
+/* 控制事件 */
 $("sync").onclick=syncNews;
 $("test").onclick=testSources;
+
 $("retry").onclick=()=>{
  if(busy||enriching)return;
- articles.forEach(a=>{if(!a.full)a.failed=0});
+ articles.forEach(a=>{
+  if(!a.full)a.failed=0;
+ });
  enrichArticles(articles,true);
 };
-$("moreBtn").onclick=()=>{shown+=PAGE;render()};
-let st;
-$("search").oninput=()=>{clearTimeout(st);st=setTimeout(()=>{shown=PAGE;render()},250)};
-$("sort").onchange=()=>{applySettings();shown=PAGE;render()};
-$("size").onchange=()=>{applySettings();render()};
-$("auto").onchange=applySettings;
-$("limit").onchange=()=>{
- applySettings();shown=PAGE;render();
- log($("limit").value==="all"?"已切換全部新聞顯示模式。":"已變更保存數量。下次更新時依新設定整理新聞。");
+
+$("offlineNow").onclick=manualOfflineSave;
+$("clearOffline").onclick=clearOfflinePhotos;
+
+$("moreBtn").onclick=()=>{
+ shown+=PAGE;
+ render();
 };
 
+$("search").oninput=()=>{
+ clearTimeout(searchTimer);
+ searchTimer=setTimeout(()=>{
+  shown=PAGE;
+  render();
+ },250);
+};
+
+$("sort").onchange=()=>{
+ applySettings();
+ shown=PAGE;
+ render();
+};
+
+$("size").onchange=()=>{
+ applySettings();
+ render();
+};
+
+$("auto").onchange=applySettings;
+
+$("limit").onchange=()=>{
+ applySettings();
+ shown=PAGE;
+ render();
+
+ log(
+  $("limit").value==="all"
+   ?"已切換全部新聞顯示模式。離線保存仍固定以最新200則為目標。"
+   :"已變更新聞保存數量。下次更新時依新設定整理新聞；離線保存仍固定最新200則。"
+ );
+};
+
+/* 網路狀態 */
 function setNet(){
  const on=navigator.onLine;
- $("status").textContent=on?"● 網路已連線":"○ 離線閱讀模式";
+
+ $("status").textContent=on
+  ?"● 網路已連線"
+  :"○ 離線閱讀模式";
+
  $("status").className="status"+(on?"":" offline");
+
+ if(on){
+  $("status").textContent="● 網路已連線";
+ }
 }
-window.addEventListener("online",setNet);
+
+window.addEventListener("online",()=>{
+ setNet();
+
+ if(db&&!busy&&!offlineBusy){
+  setTimeout(()=>{
+   if(navigator.onLine)autoSaveLatestOffline();
+  },1500);
+ }
+});
+
 window.addEventListener("offline",setNet);
 
+/* 啟動 */
 async function start(){
  loadSettings();
+
  try{
   await dbInit();
+
   articles=await getAll();
+
   const fix=[];
+
   articles.forEach(a=>{
-   if(!Array.isArray(a.images))a.images=a.image?[a.image]:[];
+   if(!Array.isArray(a.images)){
+    a.images=a.image?[a.image]:[];
+   }
+
+   if(!Array.isArray(a.offlineImages)){
+    a.offlineImages=[];
+   }
+
+   if(typeof a.offlineSaved!=="boolean"){
+    a.offlineSaved=false;
+   }
+
+   if(typeof a.offlineImageSaved!=="boolean"){
+    a.offlineImageSaved=a.offlineImages.some(x=>x&&x.blob);
+   }
+
    const t=parseTime(a.pubDate);
-   if(t!==a.pubDate){a.pubDate=t;fix.push(a)}
+   if(t!==a.pubDate){
+    a.pubDate=t;
+    fix.push(a);
+   }
   });
-  if(fix.length)putMany(fix).catch(()=>{});
+
+  if(fix.length){
+   putMany(fix).catch(()=>{});
+  }
+
   setNet();
   render();
-  if(!articles.length&&navigator.onLine)await syncNews();
-  else log("本機新聞載入完成，共 "+articles.length+" 則，依日期由新到舊排列。");
+
+  const offlineCount=articles.filter(a=>a.offlineSaved).length;
+  const photoCount=articles.filter(a=>
+   Array.isArray(a.offlineImages)&&
+   a.offlineImages.some(x=>x&&x.blob&&x.blob.size)
+  ).length;
+
+  $("offlineSummary").textContent=
+   "本機載入："+articles.length+
+   " 則新聞｜離線文字："+offlineCount+
+   " 則｜離線照片："+photoCount+" 張";
+
+  if(!articles.length&&navigator.onLine){
+   await syncNews();
+  }else{
+   log(
+    "本機新聞載入完成，共 "+articles.length+
+    " 則，依日期由新到舊排列。\n"+
+    "離線文字："+offlineCount+" 則\n"+
+    "離線照片："+photoCount+" 張"
+   );
+
+   /*
+    * 啟動後自動檢查最新200則照片是否已保存。
+    * 若有未下載照片且目前有網路，會自動補存。
+    */
+   if(navigator.onLine){
+    setTimeout(()=>{
+     if(!busy&&!offlineBusy)autoSaveLatestOffline();
+    },1800);
+   }
+  }
+
  }catch(e){
   log("資料庫啟動失敗："+e.message);
  }
 }
+
 start();
+
 </script>
 </body>
 </html>
